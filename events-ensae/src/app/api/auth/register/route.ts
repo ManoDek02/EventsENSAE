@@ -45,10 +45,22 @@ export async function POST(req: NextRequest) {
     });
 
     // Envoie l'email de vérification
-    await sendVerificationEmail(email, name, token);
+    try {
+      await sendVerificationEmail(email, name, token);
+    } catch (emailError) {
+      console.error("[REGISTER] Email verification failed:", emailError);
+      return NextResponse.json(
+        {
+          message:
+            "Compte créé, mais l'email de vérification n'a pas pu être envoyé. Utilisez « Renvoyer l'email » sur la page de connexion.",
+          emailSent: false,
+        },
+        { status: 201 }
+      );
+    }
 
     return NextResponse.json(
-      { message: "Compte créé. Vérifiez votre email pour activer votre compte." },
+      { message: "Compte créé. Vérifiez votre email pour activer votre compte.", emailSent: true },
       { status: 201 }
     );
   } catch (error) {

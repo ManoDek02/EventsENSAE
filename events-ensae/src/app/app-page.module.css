@@ -1,0 +1,274 @@
+.page {
+  min-height: 100vh;
+  padding: calc(var(--navbar-height) + 48px) 0 80px;
+}
+
+.header {
+  padding: 32px 0 36px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.content {
+  padding: 36px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  padding: 24px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.cardValue {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.badgeSuccess {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(31, 107, 71, 0.12);
+  color: var(--color-success);
+}
+
+.badgeMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--bg-base);
+  color: var(--text-muted);
+}
+
+.empty {
+  text-align: center;
+  padding: 64px 24px;
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  margin-bottom: 20px;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.emptyText {
+  color: var(--text-secondary);
+  max-width: 420px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  padding: 20px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--bg-base);
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ticketGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.ticketCard {
+  padding: 24px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ticketTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ticketDate {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.ticketLocation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.statusPending,
+.statusConfirmed,
+.statusScanned,
+.statusCancelled {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusPending {
+  background: rgba(184, 134, 26, 0.15);
+  color: var(--color-accent-dark);
+}
+
+.statusConfirmed {
+  background: rgba(31, 107, 71, 0.12);
+  color: var(--color-success);
+}
+
+.statusScanned {
+  background: var(--bg-base);
+  color: var(--text-muted);
+}
+
+.statusCancelled {
+  background: rgba(155, 38, 38, 0.1);
+  color: var(--color-error);
+}
+
+.qrWrap {
+  text-align: center;
+  padding: 20px;
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--bg-base);
+}
+
+.qrImage {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-sm);
+}
+
+.qrHint {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.qrCode {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.ticketPendingNote {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: rgba(184, 134, 26, 0.08);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

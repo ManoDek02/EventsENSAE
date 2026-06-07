@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { EmailNotVerifiedError } from "@/lib/auth-errors-custom";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -22,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Vérifie que le compte est vérifié
         if (!user.emailVerified) {
-          throw new Error("EMAIL_NOT_VERIFIED");
+          throw new EmailNotVerifiedError();
         }
 
         const isValid = await bcrypt.compare(

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, UserPlus, AlertTriangle } from "lucide-react";
 import styles from "../auth.module.css";
 
@@ -18,7 +17,6 @@ const FILIERES = [
 const PROMOTIONS = ["1ère année", "2ème année", "3ème année", "Master 1", "Master 2"];
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     email: "",

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { XCircle, RefreshCw, ArrowLeft } from "lucide-react";
@@ -9,12 +10,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   "missing-token": "Le lien de vérification est invalide ou manquant.",
   "invalid-token": "Ce lien de vérification est invalide ou a déjà été utilisé.",
   "expired-token": "Ce lien de vérification a expiré. Veuillez vous réinscrire.",
+  email_not_verified:
+    "Votre compte n'est pas encore vérifié. Consultez votre email ou renvoyez un lien depuis la page de connexion.",
 };
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams.get("error") ?? "unknown";
+  const customCode = searchParams.get("code");
   const message =
+    (customCode && ERROR_MESSAGES[customCode]) ??
     ERROR_MESSAGES[errorCode] ??
     "Une erreur inattendue s'est produite. Veuillez réessayer.";
 
@@ -39,5 +44,13 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }

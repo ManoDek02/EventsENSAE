@@ -1,19 +1,27 @@
 import Link from "next/link";
 import styles from "./page.module.css";
-import { 
-  Calendar, 
-  MapPin, 
-  Ticket, 
-  Music, 
-  Trophy, 
-  GlassWater, 
+import {
+  Calendar,
+  MapPin,
+  Ticket,
+  Music,
+  Trophy,
+  GlassWater,
   ArrowRight,
   Sparkles,
   Users,
   ShieldCheck,
   Camera,
-  LucideIcon
+  LucideIcon,
 } from "lucide-react";
+import {
+  EVENT_CATEGORY_LABELS,
+  formatPrice,
+  getPublishedEvents,
+  getRemainingSeats,
+  isAlmostSoldOut,
+  isEventSoldOut,
+} from "@/lib/events";
 
 const CATEGORY_ICON: Record<string, LucideIcon> = {
   SORTIE_PEDAGOGIQUE: MapPin,
@@ -23,73 +31,9 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   AUTRE: Sparkles,
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  SORTIE_PEDAGOGIQUE: "Sortie Pédagogique",
-  CHAMPIONNAT: "Championnat",
-  GALA: "Dîner de Gala",
-  CONFERENCE: "Conférence",
-  AUTRE: "Événement",
-};
-
-type DemoEvent = {
-  id: string;
-  title: string;
-  date: Date;
-  location: string;
-  price: number;
-  category: string;
-  capacity: number;
-  _count: { tickets: number };
-};
-
-const DEMO_EVENTS: DemoEvent[] = [
-  {
-    id: "demo-1",
-    title: "Dîner de Gala ENSAE 2025",
-    date: new Date("2025-12-20"),
-    location: "Hôtel Radisson Blu, Dakar",
-    price: 25000,
-    category: "GALA",
-    capacity: 200,
-    _count: { tickets: 145 },
-  },
-  {
-    id: "demo-2",
-    title: "Championnat Inter-Classe Football",
-    date: new Date("2025-11-15"),
-    location: "Stade ENSAE, Campus",
-    price: 0,
-    category: "CHAMPIONNAT",
-    capacity: 150,
-    _count: { tickets: 80 },
-  },
-  {
-    id: "demo-3",
-    title: "Sortie Pédagogique — ANSD",
-    date: new Date("2025-11-08"),
-    location: "Agence Nationale de la Statistique, Dakar",
-    price: 5000,
-    category: "SORTIE_PEDAGOGIQUE",
-    capacity: 60,
-    _count: { tickets: 58 },
-  },
-];
-
-async function getRecentEvents(): Promise<DemoEvent[]> {
-  try {
-    const { prisma } = await import("@/lib/prisma");
-    const events = await prisma.event.findMany({
-      where: { published: true, date: { gte: new Date() } },
-      orderBy: { date: "asc" },
-      take: 6,
-      include: {
-        _count: { select: { tickets: { where: { status: "CONFIRMED" } } } },
-      },
-    });
-    return events.length > 0 ? events : DEMO_EVENTS;
-  } catch {
-    return DEMO_EVENTS;
-  }
+async function getRecentEvents() {
+  const events = await getPublishedEvents();
+  return events.slice(0, 6);
 }
 
 export default async function HomePage() {
@@ -194,11 +138,10 @@ export default async function HomePage() {
           ) : (
             <div className="grid-events">
               {events.map((event) => {
-                const soldTickets = event._count.tickets;
-                const remainingSeats = event.capacity - soldTickets;
-                const isSoldOut = remainingSeats <= 0;
-                const isLowSeats = !isSoldOut && remainingSeats <= 10;
-                
+                const remainingSeats = getRemainingSeats(event);
+                const isSoldOut = isEventSoldOut(event);
+                const isLowSeats = isAlmostSoldOut(event);
+
                 const Icon = CATEGORY_ICON[event.category] || Sparkles;
 
                 return (
@@ -211,7 +154,7 @@ export default async function HomePage() {
                       <Icon size={48} className={styles.eventIconPlaceholder} />
                       <div className={styles.eventBadgeTop}>
                         <span className={styles.eventBadge}>
-                          {CATEGORY_LABEL[event.category]}
+                          {EVENT_CATEGORY_LABELS[event.category] ?? "Événement"}
                         </span>
                       </div>
                     </div>
@@ -227,11 +170,7 @@ export default async function HomePage() {
                     </div>
 
                     <div className={styles.eventFooter}>
-                      <span className={styles.eventPrice}>
-                        {event.price === 0
-                          ? "Gratuit"
-                          : `${event.price.toLocaleString("fr-FR")} FCFA`}
-                      </span>
+                      <span className={styles.eventPrice}>{formatPrice(event.price)}</span>
                       <span
                         className={styles.eventSeats}
                         style={isLowSeats ? { color: "#fbbf24" } : isSoldOut ? { color: "#ef4444" } : {}}

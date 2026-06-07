@@ -4,20 +4,34 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { GraduationCap, Music, User, Settings, LogOut, Ticket } from "lucide-react";
+import {
+  GraduationCap,
+  Music,
+  User,
+  Settings,
+  LogOut,
+  Ticket,
+  LucideIcon,
+} from "lucide-react";
 import styles from "./Navbar.module.css";
 
-const NAV_LINKS = [
+type NavLink = {
+  href: string;
+  label: string;
+  icon?: LucideIcon;
+};
+
+const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Accueil" },
   { href: "/events", label: "Événements" },
 ];
 
-const AUTH_NAV_LINKS = [
+const AUTH_NAV_LINKS: NavLink[] = [
   { href: "/music", label: "Musiques", icon: Music },
   { href: "/profile", label: "Mon Profil", icon: User },
 ];
 
-const ADMIN_NAV_LINKS = [
+const ADMIN_NAV_LINKS: NavLink[] = [
   { href: "/admin", label: "Administration", icon: Settings },
 ];
 
@@ -44,7 +58,7 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
+  const isAdmin = session?.user.role === "ADMIN";
   const userInitials = session?.user?.name
     ? session.user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
@@ -71,19 +85,22 @@ export function Navbar() {
 
         {/* Navigation links */}
         <ul className={styles.navLinks}>
-          {allLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className={`${styles.navLink} ${pathname === link.href ? styles.active : ""}`}
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                {/* @ts-ignore */}
-                {link.icon && <link.icon size={16} />}
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {allLinks.map((link) => {
+            const Icon = link.icon;
+
+            return (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`${styles.navLink} ${pathname === link.href ? styles.active : ""}`}
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  {Icon && <Icon size={16} />}
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
         {/* Actions */}
@@ -131,7 +148,7 @@ export function Navbar() {
                 Connexion
               </Link>
               <Link href="/auth/register" className="btn btn-primary btn-sm">
-                S'inscrire
+                S&apos;inscrire
               </Link>
             </>
           )}

@@ -8,7 +8,7 @@ export async function sendVerificationEmail(
   name: string,
   token: string
 ) {
-  const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify?token=${token}`;
+  const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify?token=${token}`;
 
   await resend.emails.send({
     from: FROM,
