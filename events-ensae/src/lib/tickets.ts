@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl } from "@/lib/qr";
+import { buildTicketQrContent, generateQrBuffer, generateQrDataUrl } from "@/lib/qr";
 import { sendTicketEmail } from "@/lib/email";
-import { formatEventDate, getEventById, isDeadlinePassed, isEventSoldOut } from "@/lib/events";
+import { formatEventDate, formatEventTime, getEventById, isDeadlinePassed, isEventSoldOut } from "@/lib/events";
 import { badRequest, notFound } from "@/lib/api-errors";
 
 const ACTIVE_TICKET_STATUSES = ["PENDING", "CONFIRMED"] as const;
@@ -46,10 +46,7 @@ export async function createTicket(userId: string, eventId: string) {
 
   const ticket = await prisma.$transaction(async (tx) => {
     const confirmedCount = await tx.ticket.count({
-      where: {
-        eventId,
-        status: { in: [...ACTIVE_TICKET_STATUSES] },
-      },
+      where: { eventId, status: { in: [...ACTIVE_TICKET_STATUSES] } },
     });
 
     if (confirmedCount >= event.capacity) {
@@ -67,13 +64,16 @@ export async function createTicket(userId: string, eventId: string) {
 
   if (status === "CONFIRMED" && ticket.user.email) {
     try {
-      const qrDataUrl = await generateQrDataUrl(ticket.qrCode);
+      // Le QR encode l'URL vers la page /billets/[code]
+      const qrContent = buildTicketQrContent(ticket.qrCode);
+      const qrBuffer = await generateQrBuffer(qrContent);
+
       await sendTicketEmail(
         ticket.user.email,
         ticket.user.name,
         ticket.event.title,
-        formatEventDate(ticket.event.date),
-        qrDataUrl
+        `${formatEventDate(ticket.event.date)} à ${formatEventTime(ticket.event.date)}`,
+        qrBuffer
       );
     } catch (error) {
       console.error("Erreur envoi email billet:", error);
@@ -116,5 +116,6 @@ export async function getTicketQrDataUrl(ticketId: string, userId: string) {
     throw badRequest("Le QR code n'est disponible que pour les billets confirmés.");
   }
 
-  return generateQrDataUrl(ticket.qrCode);
+  const qrContent = buildTicketQrContent(ticket.qrCode);
+  return generateQrDataUrl(qrContent);
 }

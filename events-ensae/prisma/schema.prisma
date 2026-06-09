@@ -88,6 +88,7 @@ model Event {
   deadline    DateTime?
   published   Boolean     @default(false)
   tags        String[]
+  allowsMusicSuggestions Boolean @default(false)
 
   tickets       Ticket[]
   musicSuggestions MusicSuggestion[]

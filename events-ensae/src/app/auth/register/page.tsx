@@ -28,6 +28,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [emailSent, setEmailSent] = useState(true);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -71,6 +72,7 @@ export default function RegisterPage() {
         setError(data.error ?? "Une erreur est survenue.");
       } else {
         setSuccess(true);
+        setEmailSent(data.emailSent !== false);
       }
     } catch {
       setError("Impossible de contacter le serveur. Réessayez.");
@@ -88,15 +90,27 @@ export default function RegisterPage() {
             <div className={styles.authIcon}>
               <CheckCircle2 size={32} color="white" />
             </div>
-            <h1 className={styles.authTitle}>Vérifiez votre email</h1>
+            <h1 className={styles.authTitle}>
+              {emailSent ? "Vérifiez votre email" : "Compte créé"}
+            </h1>
             <p className={styles.authSubtitle}>
-              Un lien de vérification a été envoyé à <strong>{form.email}</strong>.
-              Cliquez sur ce lien pour activer votre compte.
+              {emailSent
+                ? `Un lien de vérification a été envoyé à ${form.email}.`
+                : "Votre compte a été créé mais l'email de vérification n'a pas pu être envoyé."}
             </p>
           </div>
-          <div className={styles.alertSuccess} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CheckCircle2 size={16} /> Pensez à vérifier vos spams si vous ne trouvez pas l&apos;email.
-          </div>
+
+          {emailSent ? (
+            <div className={styles.alertSuccess} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <CheckCircle2 size={16} /> Pensez à vérifier vos spams.
+            </div>
+          ) : (
+            <div className={styles.alertError} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertTriangle size={16} />
+              Utilisez &quot;Renvoyer l&apos;email&quot; sur la page de connexion une fois la configuration Resend faite.
+            </div>
+          )}
+
           <div className={styles.authFooter} style={{ marginTop: "20px" }}>
             <Link href="/auth/login" className={styles.authLink}>
               Retour à la connexion →

@@ -1,0 +1,327 @@
+/* ─── Page ──────────────────────────────────────────────────── */
+.page {
+    min-height: 100vh;
+    background: #F5F2EC;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ─── Header ────────────────────────────────────────────────── */
+.header {
+    background: #1B3A6E;
+    padding: 16px 20px;
+}
+
+.headerInner {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logoMark {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #B8861A 0%, #D4A030 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.logoName {
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.2;
+}
+
+.logoSub {
+    font-family: Arial, sans-serif;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.58);
+    letter-spacing: 0.04em;
+}
+
+.headerLabel {
+    font-family: Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* ─── Main ──────────────────────────────────────────────────── */
+.main {
+    flex: 1;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ─── Badge statut ──────────────────────────────────────────── */
+.statusBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.statusIcon {
+    font-size: 1.1rem;
+}
+
+.status_confirmed {
+    background: rgba(31, 107, 71, 0.12);
+    color: #1F6B47;
+    border: 1.5px solid rgba(31, 107, 71, 0.22);
+}
+
+.status_scanned {
+    background: rgba(113, 113, 122, 0.10);
+    color: #52525B;
+    border: 1.5px solid rgba(113, 113, 122, 0.20);
+}
+
+.status_pending {
+    background: rgba(184, 134, 26, 0.10);
+    color: #8C6410;
+    border: 1.5px solid rgba(184, 134, 26, 0.22);
+}
+
+.status_cancelled {
+    background: rgba(155, 38, 38, 0.09);
+    color: #9B2626;
+    border: 1.5px solid rgba(155, 38, 38, 0.20);
+}
+
+/* ─── Carte billet ──────────────────────────────────────────── */
+.card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15, 35, 71, 0.12);
+    border: 1px solid rgba(27, 58, 110, 0.10);
+}
+
+.goldLine {
+    height: 4px;
+    background: linear-gradient(90deg, #B8861A 0%, #D4A030 100%);
+}
+
+.categoryTag {
+    display: inline-block;
+    margin: 20px 20px 0;
+    padding: 4px 12px;
+    background: rgba(184, 134, 26, 0.10);
+    border: 1px solid rgba(184, 134, 26, 0.25);
+    border-radius: 999px;
+    font-family: Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #B8861A;
+}
+
+.eventTitle {
+    font-family: Georgia, serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1B3A6E;
+    line-height: 1.25;
+    padding: 10px 20px 20px;
+}
+
+/* ─── Infos événement ───────────────────────────────────────── */
+.infoGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 20px;
+}
+
+.infoItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(27, 58, 110, 0.07);
+}
+
+.infoIcon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(27, 58, 110, 0.06);
+    border-radius: 8px;
+    color: #1B3A6E;
+    margin-top: 1px;
+}
+
+.infoLabel {
+    font-family: Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #71717A;
+    margin-bottom: 3px;
+}
+
+.infoValue {
+    font-family: Arial, sans-serif;
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: #18181B;
+    line-height: 1.4;
+}
+
+/* ─── Séparateur perforé ────────────────────────────────────── */
+.perforated {
+    position: relative;
+    height: 1px;
+    margin: 6px 0;
+    background: repeating-linear-gradient(90deg,
+            rgba(27, 58, 110, 0.15) 0px,
+            rgba(27, 58, 110, 0.15) 6px,
+            transparent 6px,
+            transparent 12px);
+}
+
+.perforated::before,
+.perforated::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    background: #F5F2EC;
+    border-radius: 50%;
+    border: 1px solid rgba(27, 58, 110, 0.10);
+}
+
+.perforated::before {
+    left: -9px;
+}
+
+.perforated::after {
+    right: -9px;
+}
+
+/* ─── Section titulaire & code ──────────────────────────────── */
+.section {
+    padding: 18px 20px;
+}
+
+.sectionLabel {
+    font-family: Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #71717A;
+    margin-bottom: 8px;
+}
+
+.holderName {
+    font-family: Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1B3A6E;
+    margin-bottom: 4px;
+}
+
+.holderMeta {
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    color: #52525B;
+    line-height: 1.5;
+}
+
+.ticketCode {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: #3F3F46;
+    background: rgba(27, 58, 110, 0.05);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(27, 58, 110, 0.10);
+    word-break: break-all;
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+}
+
+.issuedAt {
+    font-family: Arial, sans-serif;
+    font-size: 0.78rem;
+    color: #71717A;
+}
+
+/* ─── Avertissement ─────────────────────────────────────────── */
+.warningBox {
+    padding: 14px 18px;
+    background: rgba(155, 38, 38, 0.07);
+    border: 1px solid rgba(155, 38, 38, 0.18);
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 0.875rem;
+    color: #7B2020;
+    line-height: 1.55;
+    text-align: center;
+}
+
+/* ─── Footer ────────────────────────────────────────────────── */
+.footer {
+    text-align: center;
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.footerLink {
+    font-family: Arial, sans-serif;
+    font-size: 0.875rem;
+    color: #1B3A6E;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.footerLink:hover {
+    text-decoration: underline;
+}
+
+.footerBrand {
+    font-family: Arial, sans-serif;
+    font-size: 0.75rem;
+    color: #A1A1AA;
+}

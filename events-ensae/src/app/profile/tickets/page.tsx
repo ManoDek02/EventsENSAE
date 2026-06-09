@@ -3,7 +3,7 @@ import { Calendar, MapPin, Ticket } from "lucide-react";
 import { requireAuth } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatEventDate } from "@/lib/events";
-import { generateQrDataUrl } from "@/lib/qr";
+import { buildTicketQrContent, generateQrDataUrl } from "@/lib/qr";
 import styles from "../../app-page.module.css";
 
 export const metadata = {
@@ -36,7 +36,14 @@ export default async function ProfileTicketsPage() {
   const ticketsWithQr = await Promise.all(
     tickets.map(async (ticket) => {
       const showQr = ticket.status === "CONFIRMED" || ticket.status === "SCANNED";
-      const qrDataUrl = showQr ? await generateQrDataUrl(ticket.qrCode) : null;
+      let qrDataUrl: string | null = null;
+
+      if (showQr) {
+        // QR encode l'URL vers /billets/[code]
+        const qrContent = buildTicketQrContent(ticket.qrCode);
+        qrDataUrl = await generateQrDataUrl(qrContent);
+      }
+
       return { ticket, qrDataUrl };
     })
   );
@@ -51,7 +58,7 @@ export default async function ProfileTicketsPage() {
           </div>
           <h1 className={styles.title}>Mes Billets</h1>
           <p className={styles.subtitle}>
-            Retrouvez ici vos billets numériques et leurs QR codes pour l&apos;entrée aux événements.
+            Retrouvez ici vos billets numériques. Scannez le QR code à l&apos;entrée de l&apos;événement.
           </p>
         </div>
       </section>
@@ -96,13 +103,13 @@ export default async function ProfileTicketsPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={qrDataUrl} alt="QR Code billet" className={styles.qrImage} />
                       <p className={styles.qrHint}>
-                        Présentez ce QR code à l&apos;entrée. Ne le partagez pas.
+                        Scannez ce code à l&apos;entrée — s&apos;ouvre sur une page de vérification.
                       </p>
                       <code className={styles.qrCode}>{ticket.qrCode.slice(0, 8)}…</code>
                     </div>
                   ) : ticket.status === "PENDING" ? (
                     <p className={styles.ticketPendingNote}>
-                      Votre billet sera disponible avec QR code après confirmation du paiement.
+                      Votre billet sera disponible après confirmation du paiement.
                     </p>
                   ) : null}
 

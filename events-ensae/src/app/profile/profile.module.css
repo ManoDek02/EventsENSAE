@@ -1,0 +1,446 @@
+/* ─── Hero profil ───────────────────────────────────────────── */
+.hero {
+    background: var(--gradient-hero);
+    padding: calc(var(--navbar-height) + 48px) 0 40px;
+}
+
+.heroInner {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.avatar {
+    width: 72px;
+    height: 72px;
+    background: var(--gradient-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    border: 3px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.heroInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.heroName {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.heroEmail {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 14px;
+}
+
+.heroBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.badgeVerified {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(31, 107, 71, 0.28);
+    border: 1px solid rgba(110, 231, 183, 0.35);
+    border-radius: var(--radius-full);
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: #6EE7B7;
+    letter-spacing: 0.02em;
+}
+
+.badgePending {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(184, 134, 26, 0.22);
+    border: 1px solid rgba(212, 160, 48, 0.35);
+    border-radius: var(--radius-full);
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: #D4A030;
+}
+
+.badgeMeta {
+    display: inline-flex;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-full);
+    font-size: 0.73rem;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.heroEditBtn {
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+/* ─── Stats ─────────────────────────────────────────────────── */
+.statsBar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    divide-x: 1px solid var(--border-subtle);
+}
+
+.statItem {
+    padding: 20px 24px;
+    text-align: center;
+    border-right: 1px solid var(--border-subtle);
+}
+
+.statItem:last-child {
+    border-right: none;
+}
+
+.statValue {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.statLabel {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+/* ─── Contenu principal ─────────────────────────────────────── */
+.content {
+    padding: 40px 0 80px;
+}
+
+/* ─── Info cards ────────────────────────────────────────────── */
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.infoCard {
+    padding: 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.infoCardLabel {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.infoCardValue {
+    font-size: 0.975rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ─── Nav cards ─────────────────────────────────────────────── */
+.navGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.navCard {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.navCard:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.navCardIcon {
+    width: 44px;
+    height: 44px;
+    background: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    flex-shrink: 0;
+    transition: background var(--transition-fast);
+}
+
+.navCard:hover .navCardIcon {
+    background: var(--color-primary-100);
+}
+
+.navCardBody {
+    flex: 1;
+    min-width: 0;
+}
+
+.navCardTitle {
+    font-size: 0.975rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+}
+
+.navCardDesc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.navCardArrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+}
+
+.navCard:hover .navCardArrow {
+    transform: translateX(3px);
+    color: var(--color-primary);
+}
+
+/* ─── Section générique (historique, modifier) ──────────────── */
+.sectionTitle {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sectionTitleDot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ─── Items historique ──────────────────────────────────────── */
+.historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 40px;
+}
+
+.historyItem {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--bg-surface);
+    transition: background var(--transition-fast);
+}
+
+.historyItem:hover {
+    background: var(--bg-base);
+}
+
+.historyItemIcon {
+    width: 36px;
+    height: 36px;
+    background: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.historyItemBody {
+    flex: 1;
+    min-width: 0;
+}
+
+.historyItemTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.historyItemMeta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.historyItemBadge {
+    flex-shrink: 0;
+    padding: 3px 9px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.historyItemBadgeGreen {
+    background: rgba(31, 107, 71, 0.1);
+    color: var(--color-success);
+}
+
+.historyItemBadgeGold {
+    background: var(--color-accent-50);
+    color: var(--color-accent-dark);
+}
+
+.historyItemBadgeGray {
+    background: var(--bg-base);
+    color: var(--text-muted);
+}
+
+/* ─── Empty state (réutilisable) ────────────────────────────── */
+.empty {
+    text-align: center;
+    padding: 36px 20px;
+    background: var(--bg-surface);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-lg);
+    margin-bottom: 40px;
+}
+
+.emptyIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary-50);
+    border-radius: var(--radius-full);
+    color: var(--color-primary);
+    margin-bottom: 12px;
+}
+
+.emptyText {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ─── Formulaire édition ────────────────────────────────────── */
+.editCard {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xl);
+    padding: 36px;
+    max-width: 560px;
+    box-shadow: var(--shadow-md);
+}
+
+.editCard::before {
+    display: none;
+}
+
+.editFieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.editActions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.editAlert {
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.editAlertSuccess {
+    background: rgba(31, 107, 71, 0.08);
+    border: 1px solid rgba(31, 107, 71, 0.20);
+    color: var(--color-success);
+}
+
+.editAlertError {
+    background: rgba(155, 38, 38, 0.07);
+    border: 1px solid rgba(155, 38, 38, 0.20);
+    color: var(--color-error);
+}
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .statItem {
+        padding: 16px;
+    }
+
+    .heroInner {
+        gap: 16px;
+    }
+
+    .avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+
+    .editCard {
+        padding: 24px 20px;
+    }
+}
