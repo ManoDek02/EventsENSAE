@@ -1,3 +1,5 @@
+// src/app/events/[id]/page.tsx
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -16,7 +18,6 @@ import {
   formatEventDate,
   formatEventTime,
   formatPrice,
-  getEventById,
   getRemainingSeats,
   isAlmostSoldOut,
   isDeadlinePassed,
@@ -24,8 +25,9 @@ import {
   isFreeEvent,
 } from "@/lib/events";
 import { getSession } from "@/lib/session";
-import { getUserTicketForEvent, getUserWaitlistEntry } from "@/lib/tickets";
+import { getUserWaitlistEntry } from "@/lib/tickets";
 import { EventBookingActions } from "@/components/events/EventBookingActions";
+import { prisma } from "@/lib/prisma";
 import styles from "../events.module.css";
 
 type EventDetailPageProps = {
@@ -34,8 +36,10 @@ type EventDetailPageProps = {
 
 export async function generateMetadata({ params }: EventDetailPageProps) {
   const { id } = await params;
-  const event = await getEventById(id);
-
+  const event = await prisma.event.findUnique({
+    where: { id, published: true },
+    select: { title: true },
+  });
   return {
     title: event ? `${event.title} | ENSAE Events` : "Événement | ENSAE Events",
   };
@@ -43,9 +47,27 @@ export async function generateMetadata({ params }: EventDetailPageProps) {
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { id } = await params;
-  const event = await getEventById(id);
 
-  if (!event) notFound();
+  /* ─── Récupérer l'événement avec ticketTypes ──────────────── */
+  const rawEvent = await prisma.event.findUnique({
+    where: { id, published: true },
+    include: {
+      _count: {
+        select: { tickets: { where: { status: "CONFIRMED" } } },
+      },
+      ticketTypes: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  if (!rawEvent) notFound();
+
+  /* ─── Enrichir avec les helpers existants ────────────────── */
+  const event = {
+    ...rawEvent,
+    _count: rawEvent._count,
+  };
 
   const remainingSeats = getRemainingSeats(event);
   const soldTickets = event.capacity - remainingSeats;
@@ -54,12 +76,32 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const almostSoldOut = isAlmostSoldOut(event);
   const deadlinePassed = isDeadlinePassed(event);
   const registrationOpen = canRegister(event);
-  const loginHref = `/auth/login?callbackUrl=${encodeURIComponent(`/events/${id}`)}`;
 
+  /* ─── Session et billet existant ────────────────────────── */
   const session = await getSession();
   const userId = session?.user?.id;
-  const existingTicket = userId ? await getUserTicketForEvent(userId, id) : null;
+
+  const existingTicket = userId
+    ? await prisma.ticket.findFirst({
+      where: {
+        userId,
+        eventId: id,
+        status: { not: "CANCELLED" },
+      },
+      select: {
+        id: true,
+        status: true,
+        qrCode: true,
+        ticketType: { select: { name: true } },
+      },
+    })
+    : null;
+
   const waitlistEntry = userId ? await getUserWaitlistEntry(userId, id) : null;
+
+  /* ─── Types de billets pour l'affichage ──────────────────── */
+  const ticketTypes = event.ticketTypes ?? [];
+  const hasTicketTypes = ticketTypes.length > 0;
 
   return (
     <main>
@@ -94,47 +136,68 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
               <div className={styles.infoList}>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoIcon}>
-                    <Calendar size={17} />
-                  </span>
+                  <span className={styles.infoIcon}><Calendar size={17} /></span>
                   <span>{formatEventDate(event.date)}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoIcon}>
-                    <Clock size={17} />
-                  </span>
+                  <span className={styles.infoIcon}><Clock size={17} /></span>
                   <span>{formatEventTime(event.date)}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoIcon}>
-                    <MapPin size={17} />
-                  </span>
+                  <span className={styles.infoIcon}><MapPin size={17} /></span>
                   <span>{event.location}</span>
                 </div>
-                <div className={styles.infoItem}>
-                  <span className={styles.infoIcon}>
-                    <Music size={17} />
-                  </span>
-                  <span>Playlist communautaire liée à cet événement</span>
-                </div>
+                {event.allowsMusicSuggestions && (
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoIcon}><Music size={17} /></span>
+                    <span>Playlist communautaire liée à cet événement</span>
+                  </div>
+                )}
               </div>
 
               {event.tags.length > 0 && (
                 <div className={styles.tags}>
                   {event.tags.map((tag) => (
-                    <span key={tag} className={styles.tag}>
-                      {tag}
-                    </span>
+                    <span key={tag} className={styles.tag}>{tag}</span>
                   ))}
                 </div>
               )}
             </div>
 
             <aside className={styles.sidePanel}>
-              <div className={styles.sidePrice}>{formatPrice(event.price)}</div>
-              {isFreeEvent(event) && (
-                <span className={styles.sideBadgeFree}>Événement gratuit</span>
+
+              {/* ─── Prix : types ou prix unique ───────────── */}
+              {hasTicketTypes ? (
+                <div style={{ marginBottom: "8px" }}>
+                  {ticketTypes.map((t) => (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                        padding: "5px 0",
+                        borderBottom: "1px solid var(--border-subtle)",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      <span style={{ color: "var(--text-secondary)" }}>{t.name}</span>
+                      <span style={{ fontWeight: 700, color: "var(--color-primary)", marginLeft: 12 }}>
+                        {t.price === 0 ? "Gratuit" : `${t.price.toLocaleString("fr-FR")} FCFA`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className={styles.sidePrice}>{formatPrice(event.price)}</div>
+                  {isFreeEvent(event) && (
+                    <span className={styles.sideBadgeFree}>Événement gratuit</span>
+                  )}
+                </>
               )}
+
+              {/* ─── Jauge places ──────────────────────────── */}
               <div className={styles.sideMeta}>
                 <div className={styles.seats}>
                   <Users size={16} />
@@ -147,9 +210,9 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   className={styles.seats}
                   style={
                     isSoldOut
-                      ? { color: "#9B2626" }
+                      ? { color: "var(--color-error)" }
                       : almostSoldOut
-                        ? { color: "#B8861A" }
+                        ? { color: "var(--color-warning)" }
                         : {}
                   }
                 >
@@ -162,13 +225,14 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </div>
               </div>
 
+              {/* ─── Booking actions ───────────────────────── */}
               <EventBookingActions
                 eventId={event.id}
                 isLoggedIn={!!session}
                 loginHref={`/auth/login?callbackUrl=/events/${event.id}`}
                 deadlinePassed={isDeadlinePassed(event)}
                 isSoldOut={isEventSoldOut(event)}
-                registrationOpen={canRegister(event)}
+                registrationOpen={registrationOpen}
                 isFree={isFreeEvent(event)}
                 price={event.price}
                 eventTitle={event.title}
@@ -176,7 +240,14 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 existingTicketStatus={existingTicket?.status ?? null}
                 existingTicketId={existingTicket?.id ?? null}
                 existingTicketCode={existingTicket?.qrCode ?? null}
+                existingTicketTypeName={existingTicket?.ticketType?.name ?? null}
                 onWaitlist={!!waitlistEntry}
+                ticketTypes={ticketTypes.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  description: t.description,
+                  price: t.price,
+                }))}
               />
             </aside>
           </div>

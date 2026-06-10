@@ -6,15 +6,14 @@ import { CheckCircle2, UserPlus, AlertTriangle } from "lucide-react";
 import styles from "../auth.module.css";
 
 const FILIERES = [
-  "Statistique",
-  "Démographie",
-  "Économie",
-  "Informatique Statistique",
-  "Planification",
+  "ISEP",
+  "AS",
+  "ISE",
+  "ALUMNI",
   "Autre",
 ];
 
-const PROMOTIONS = ["1ère année", "2ème année", "3ème année", "Master 1", "Master 2"];
+const PROMOTIONS = ["1ère année", "2ème année", "3ème année", "Autre"];
 
 export default function RegisterPage() {
   const [form, setForm] = useState({

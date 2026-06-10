@@ -1,11 +1,12 @@
 "use client";
 // src/app/admin/evenements/EventForm.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Save, ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { TicketTypeEditor, type TicketTypeInput } from "./TicketTypeEditor";
 import styles from "../admin.module.css";
 
 export type EventFormData = {
@@ -48,9 +49,30 @@ export function EventForm({ initialData, eventId }: Props) {
     const isEdit = Boolean(eventId);
 
     const [form, setForm] = useState<EventFormData>({ ...EMPTY, ...initialData });
+    const [ticketTypes, setTicketTypes] = useState<TicketTypeInput[]>([]);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
+
+    // Charger les types existants en mode édition
+    useEffect(() => {
+        if (!eventId) return;
+        fetch(`/api/admin/events/${eventId}/ticket-types`)
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.ticketTypes) {
+                    setTicketTypes(
+                        data.ticketTypes.map((t: { id: string; name: string; description: string | null; price: number }) => ({
+                            id: t.id,
+                            name: t.name,
+                            description: t.description ?? "",
+                            price: String(t.price),
+                        }))
+                    );
+                }
+            })
+            .catch(() => { });
+    }, [eventId]);
 
     const set = (k: keyof EventFormData, v: string | boolean) =>
         setForm((prev) => ({ ...prev, [k]: v }));
@@ -58,6 +80,15 @@ export function EventForm({ initialData, eventId }: Props) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true); setSuccess(""); setError("");
+
+        // Valider les types de billets
+        for (const t of ticketTypes) {
+            if (!t.name.trim()) {
+                setError("Tous les types de billets doivent avoir un nom.");
+                setLoading(false);
+                return;
+            }
+        }
 
         const payload = {
             title: form.title.trim(),
@@ -87,11 +118,36 @@ export function EventForm({ initialData, eventId }: Props) {
 
             if (!res.ok) {
                 setError(data.error ?? "Une erreur est survenue.");
-            } else {
-                setSuccess(isEdit ? "Événement mis à jour." : "Événement créé avec succès.");
-                if (!isEdit) {
-                    setTimeout(() => router.push(`/admin/evenements/${data.event.id}`), 800);
+                setLoading(false);
+                return;
+            }
+
+            const savedEventId = eventId ?? data.event.id;
+
+            // Sauvegarder les types de billets
+            if (ticketTypes.length > 0 || isEdit) {
+                const typesRes = await fetch(`/api/admin/events/${savedEventId}/ticket-types`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        ticketTypes: ticketTypes.map((t) => ({
+                            ...(t.id ? { id: t.id } : {}),
+                            name: t.name.trim(),
+                            description: t.description?.trim() || null,
+                            price: Number(t.price) || 0,
+                        })),
+                    }),
+                });
+                if (!typesRes.ok) {
+                    setError("Événement sauvegardé mais erreur sur les types de billets.");
+                    setLoading(false);
+                    return;
                 }
+            }
+
+            setSuccess(isEdit ? "Événement mis à jour." : "Événement créé avec succès.");
+            if (!isEdit) {
+                setTimeout(() => router.push(`/admin/evenements/${savedEventId}`), 800);
             }
         } catch {
             setError("Impossible de contacter le serveur.");
@@ -181,15 +237,23 @@ export function EventForm({ initialData, eventId }: Props) {
 
                         {/* Prix */}
                         <div className="form-group">
-                            <label className="form-label" htmlFor="price">Prix (FCFA)</label>
+                            <label className="form-label" htmlFor="price">
+                                Prix de base (FCFA)
+                                {ticketTypes.length > 0 && (
+                                    <span style={{ fontWeight: 400, color: "var(--text-muted)", marginLeft: 6 }}>
+                                        — remplacé par les types ci-dessous
+                                    </span>
+                                )}
+                            </label>
                             <input id="price" type="number" min="0" className="form-input"
                                 value={form.price} onChange={(e) => set("price", e.target.value)}
-                                placeholder="0 = Gratuit" />
+                                placeholder="0 = Gratuit"
+                                disabled={ticketTypes.length > 0} />
                         </div>
 
                         {/* Capacité */}
                         <div className="form-group">
-                            <label className="form-label" htmlFor="capacity">Capacité (places) *</label>
+                            <label className="form-label" htmlFor="capacity">Capacité totale (places) *</label>
                             <input id="capacity" type="number" min="1" className="form-input" required
                                 value={form.capacity} onChange={(e) => set("capacity", e.target.value)} />
                         </div>
@@ -200,6 +264,21 @@ export function EventForm({ initialData, eventId }: Props) {
                             <input id="tags" className="form-input"
                                 value={form.tags} onChange={(e) => set("tags", e.target.value)}
                                 placeholder="gala, alumni, soirée" />
+                        </div>
+
+                        {/* Types de billets */}
+                        <div className={`form-group ${styles.formGridFull}`}
+                            style={{
+                                padding: "20px",
+                                background: "var(--bg-base)",
+                                borderRadius: "var(--radius-lg)",
+                                border: "1px solid var(--border-subtle)",
+                            }}>
+                            <TicketTypeEditor
+                                eventId={eventId}
+                                value={ticketTypes}
+                                onChange={setTicketTypes}
+                            />
                         </div>
 
                         {/* Options */}
