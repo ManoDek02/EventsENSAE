@@ -1,0 +1,417 @@
+/* src/app/admin/scanner/scanner.module.css */
+
+/* ─── Sélection événement ───────────────────────────────────── */
+.eventSelect {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.eventSelectLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* ─── Toggle mode (Caméra / Manuel) ────────────────────────── */
+.modeToggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    width: fit-content;
+    background: var(--bg-surface);
+}
+
+.modeBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.modeBtn:hover {
+    background: var(--color-primary-50);
+    color: var(--color-primary);
+}
+
+.modeBtnActive {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+.modeBtnActive:hover {
+    background: var(--color-primary-light);
+    color: #ffffff;
+}
+
+/* ─── Layout 2 colonnes ─────────────────────────────────────── */
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Zone caméra ───────────────────────────────────────────── */
+.scanArea {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cameraWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0a0a0a;
+    overflow: hidden;
+}
+
+.video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cameraError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* ─── Overlay de scan ───────────────────────────────────────── */
+.scanOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    pointer-events: none;
+}
+
+.scanFrame {
+    position: relative;
+    width: 220px;
+    height: 220px;
+}
+
+/* Coins du cadre de scan */
+.corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-color: #ffffff;
+    border-style: solid;
+}
+
+.cornerTL {
+    top: 0;
+    left: 0;
+    border-width: 3px 0 0 3px;
+    border-radius: 4px 0 0 0;
+}
+
+.cornerTR {
+    top: 0;
+    right: 0;
+    border-width: 3px 3px 0 0;
+    border-radius: 0 4px 0 0;
+}
+
+.cornerBL {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 3px 3px;
+    border-radius: 0 0 0 4px;
+}
+
+.cornerBR {
+    bottom: 0;
+    right: 0;
+    border-width: 0 3px 3px 0;
+    border-radius: 0 0 4px 0;
+}
+
+/* Ligne de scan animée */
+.scanLine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(27, 58, 110, 0.9);
+    box-shadow: 0 0 8px rgba(27, 58, 110, 0.6);
+    animation: scanDown 1.4s ease-in-out infinite;
+}
+
+@keyframes scanDown {
+    0% {
+        top: 0;
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0.3;
+    }
+}
+
+.scanHint {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.02em;
+}
+
+/* ─── Recherche manuelle ────────────────────────────────────── */
+.manualSearch {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.noResults {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.manualList {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.manualItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.1s;
+}
+
+.manualItem:last-child {
+    border-bottom: none;
+}
+
+.manualItem:hover {
+    background: var(--color-primary-50);
+}
+
+.manualItemInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.manualItemName {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.manualItemMeta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Panneau résultat ──────────────────────────────────────── */
+.resultArea {
+    position: sticky;
+    top: calc(var(--navbar-height) + 24px);
+}
+
+.resultIdle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px 24px;
+    background: var(--bg-surface);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Spinner */
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border-medium);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Carte résultat */
+.resultCard {
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.resultValid {
+    background: rgba(31, 107, 71, 0.08);
+    border-color: rgba(31, 107, 71, 0.25);
+    color: #1F6B47;
+}
+
+.resultWarning {
+    background: rgba(184, 134, 26, 0.08);
+    border-color: rgba(184, 134, 26, 0.25);
+    color: #8C6410;
+}
+
+.resultError {
+    background: rgba(155, 38, 38, 0.07);
+    border-color: rgba(155, 38, 38, 0.20);
+    color: #9B2626;
+}
+
+.resultIcon {
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.resultLabel {
+    font-size: 1.3rem;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    line-height: 1.2;
+}
+
+.resultMessage {
+    font-size: 0.875rem;
+    opacity: 0.85;
+    line-height: 1.5;
+}
+
+/* Détail du billet */
+.ticketDetail {
+    width: 100%;
+    margin-top: 12px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid currentColor;
+    opacity: 0.8;
+}
+
+.ticketDetailRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 7px 14px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    text-align: left;
+}
+
+.ticketDetailRow:last-child {
+    border-bottom: none;
+}
+
+.ticketDetailKey {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    width: 70px;
+    opacity: 0.7;
+}
+
+.ticketDetailVal {
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.4;
+    min-width: 0;
+    word-break: break-word;
+}
+
+/* Bouton reset */
+.resetBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 8px;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid currentColor;
+    cursor: pointer;
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.resetBtn:hover {
+    background: rgba(255, 255, 255, 0.85);
+}

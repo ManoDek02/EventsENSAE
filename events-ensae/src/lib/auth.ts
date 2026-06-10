@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { EmailNotVerifiedError } from "@/lib/auth-errors-custom";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",

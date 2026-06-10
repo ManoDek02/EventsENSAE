@@ -1,3 +1,5 @@
+/* src/components/layout/Navbar.module.css */
+
 .navbar {
   position: fixed;
   top: 0;
@@ -5,17 +7,17 @@
   right: 0;
   z-index: 1000;
   height: var(--navbar-height);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-subtle);
   transition: all var(--transition-base);
 }
 
 .navbar.scrolled {
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(255, 255, 255, 0.98);
   border-bottom-color: var(--border-medium);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 1px 0 var(--border-subtle), var(--shadow-sm);
 }
 
 .navInner {
@@ -29,7 +31,7 @@
   gap: 32px;
 }
 
-/* ─── Logo ─────────────────────────────────────── */
+/* ─── Logo ──────────────────────────────────────────────────── */
 .logo {
   display: flex;
   align-items: center;
@@ -39,15 +41,22 @@
 }
 
 .logoIcon {
-  width: 38px;
-  height: 38px;
-  background: var(--gradient-primary);
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 16px rgba(27, 58, 110, 0.32);
+  position: relative;
+  overflow: hidden;
+}
+
+.logoIcon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
 }
 
 .logoText {
@@ -57,22 +66,21 @@
 }
 
 .logoTitle {
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
-  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
 }
 
 .logoSub {
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-/* ─── Nav links ─────────────────────────────────── */
+/* ─── Nav links ──────────────────────────────────────────────── */
 .navLinks {
   display: flex;
   align-items: center;
@@ -81,13 +89,14 @@
 }
 
 .navLink {
-  padding: 7px 13px;
+  padding: 6px 12px;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
   transition: all var(--transition-fast);
+  letter-spacing: -0.01em;
 }
 
 .navLink:hover {
@@ -96,65 +105,89 @@
 }
 
 .navLink.active {
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   background: var(--color-primary-100);
   font-weight: 600;
 }
 
-/* ─── Actions ──────────────────────────────────── */
+/* ─── Actions ────────────────────────────────────────────────── */
 .navActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-/* ─── Avatar dropdown ──────────────────────────── */
-.userMenu {
-  position: relative;
-}
+/* ─── Avatar ─────────────────────────────────────────────────── */
+.userMenu { position: relative; }
 
 .userAvatar {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--gradient-primary);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: white;
   cursor: pointer;
   border: 2px solid transparent;
   transition: all var(--transition-fast);
+  letter-spacing: 0.02em;
 }
 
 .userAvatar:hover {
-  border-color: var(--color-primary-light);
-  box-shadow: 0 0 0 4px rgba(27, 58, 110, 0.14);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
+/* ─── Dropdown ───────────────────────────────────────────────── */
 .dropdown {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 10px);
   right: 0;
   min-width: 220px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
-  padding: 8px;
+  padding: 6px;
   box-shadow: var(--shadow-lg);
-  animation: fadeInUp 0.18s ease;
+  animation: fadeInUp 0.15s ease;
+}
+
+.dropdownUser {
+  padding: 10px 12px 8px;
+}
+
+.dropdownUserName {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.dropdownUserEmail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
 }
 
 .dropdownItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 9px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -167,42 +200,20 @@
 }
 
 .dropdownItem:hover {
-  background: var(--color-primary-50);
-  color: var(--color-primary);
+  background: var(--color-accent-50);
+  color: var(--color-accent);
 }
 
 .dropdownItem.danger:hover {
-  background: rgba(155, 38, 38, 0.08);
+  background: rgba(220, 38, 38, 0.07);
   color: var(--color-error);
 }
 
-.dropdownDivider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 6px 0;
-}
-
-.dropdownUser {
-  padding: 12px 14px 8px;
-}
-
-.dropdownUserName {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.dropdownUserEmail {
-  font-size: 0.77rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* ─── Mobile toggle ────────────────────────────── */
+/* ─── Mobile ─────────────────────────────────────────────────── */
 .menuToggle {
   display: none;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
   padding: 4px;
   background: none;
@@ -210,19 +221,14 @@
 }
 
 .menuToggle span {
-  width: 22px;
-  height: 2px;
+  width: 20px;
+  height: 1.5px;
   background: var(--text-secondary);
   border-radius: 2px;
   transition: all var(--transition-base);
 }
 
 @media (max-width: 768px) {
-  .navLinks {
-    display: none;
-  }
-
-  .menuToggle {
-    display: flex;
-  }
+  .navLinks { display: none; }
+  .menuToggle { display: flex; }
 }

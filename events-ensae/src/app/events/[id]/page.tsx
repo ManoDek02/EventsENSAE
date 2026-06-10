@@ -163,14 +163,19 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </div>
 
               <EventBookingActions
-                eventId={id}
-                isLoggedIn={!!userId}
-                loginHref={loginHref}
-                deadlinePassed={deadlinePassed}
-                isSoldOut={isSoldOut}
-                registrationOpen={registrationOpen}
+                eventId={event.id}
+                isLoggedIn={!!session}
+                loginHref={`/auth/login?callbackUrl=/events/${event.id}`}
+                deadlinePassed={isDeadlinePassed(event)}
+                isSoldOut={isEventSoldOut(event)}
+                registrationOpen={canRegister(event)}
                 isFree={isFreeEvent(event)}
+                price={event.price}
+                eventTitle={event.title}
+                userName={session?.user?.name ?? ""}
                 existingTicketStatus={existingTicket?.status ?? null}
+                existingTicketId={existingTicket?.id ?? null}
+                existingTicketCode={existingTicket?.qrCode ?? null}
                 onWaitlist={!!waitlistEntry}
               />
             </aside>

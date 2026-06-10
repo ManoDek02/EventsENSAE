@@ -1,0 +1,275 @@
+/* src/components/payment/PaymentInstructions.module.css */
+
+.wrap {
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ─── Header ────────────────────────────────────────────────── */
+.header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.headerIcon {
+    color: var(--color-accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.headerTitle {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.headerSub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ─── Montant ───────────────────────────────────────────────── */
+.amount {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 16px 20px;
+    background: var(--color-primary-50);
+    border: 1px solid var(--color-primary-100);
+    border-radius: var(--radius-md);
+}
+
+.amountValue {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.amountCurrency {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.amountLabel {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+/* ─── Étapes ────────────────────────────────────────────────── */
+.steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+}
+
+.step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.stepNumber {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.stepContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.stepTitle {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.stepDesc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ─── Moyens de paiement ────────────────────────────────────── */
+.paymentMethods {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.method {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+}
+
+.methodBadge {
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.methodNumber {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: monospace;
+    letter-spacing: 0.06em;
+}
+
+/* ─── Référence ─────────────────────────────────────────────── */
+.reference {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+}
+
+.referenceCode {
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.08em;
+}
+
+.referenceNote {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ─── Bouton copier ─────────────────────────────────────────── */
+.copyBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid var(--border-medium);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.copyBtn:hover {
+    background: var(--color-primary-50);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+/* ─── Erreur ────────────────────────────────────────────────── */
+.error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(155, 38, 38, 0.07);
+    border: 1px solid rgba(155, 38, 38, 0.20);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-error);
+}
+
+/* ─── Bouton notification ───────────────────────────────────── */
+.notifyBtn {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* ─── Confirmé ──────────────────────────────────────────────── */
+.confirmed {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(31, 107, 71, 0.08);
+    border: 1px solid rgba(31, 107, 71, 0.22);
+    border-radius: var(--radius-md);
+    color: var(--color-success);
+}
+
+.confirmedTitle {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.confirmedSub {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+/* ─── Note délai ────────────────────────────────────────────── */
+.delayNote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    justify-content: center;
+}
+
+/* ─── Spinner ───────────────────────────────────────────────── */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -166,6 +166,7 @@ function LoginContent() {
           className={styles.authForm}
           onSubmit={handleSubmit}
           style={{ marginTop: displayInfo || displayError || showResend ? "20px" : "0" }}
+          method="POST" action="#"
         >
           <div className="form-group">
             <label className="form-label" htmlFor="email">

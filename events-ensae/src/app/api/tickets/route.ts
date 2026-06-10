@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
           eventId: ticket.eventId,
           status: ticket.status,
           eventTitle: ticket.event.title,
+          qrCode: ticket.qrCode,
         },
         message:
           ticket.status === "CONFIRMED"

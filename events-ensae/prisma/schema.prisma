@@ -124,6 +124,7 @@ model Ticket {
 
 enum TicketStatus {
   PENDING
+  PENDING_REVIEW 
   CONFIRMED
   SCANNED
   CANCELLED
