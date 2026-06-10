@@ -1,4 +1,6 @@
 // src/app/api/admin/scanner/route.ts
+// Mise à jour : inclut ticketType dans toutes les réponses
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden } from "@/lib/api-errors";
@@ -11,33 +13,21 @@ async function requireAdminApi() {
     return session;
 }
 
-/* ─── Extraire le qrCode depuis une URL ou un code brut ─────── */
 function extractQrCode(raw: string): string {
     const trimmed = raw.trim();
-    // Si c'est une URL complète (ex: https://ensae.sn/billets/abc-123)
     try {
         const url = new URL(trimmed);
         const segments = url.pathname.split("/").filter(Boolean);
-        // Chercher le segment après "billets"
         const idx = segments.indexOf("billets");
-        if (idx !== -1 && segments[idx + 1]) {
-            return segments[idx + 1];
-        }
-    } catch {
-        // Pas une URL — traiter comme code brut
-    }
+        if (idx !== -1 && segments[idx + 1]) return segments[idx + 1];
+    } catch { /* pas une URL */ }
     return trimmed;
 }
 
-/* ─── POST /api/admin/scanner ─────────────────────────────────
-   Body: { qrRaw: string, eventId?: string }
-   - qrRaw : l'URL ou le code UUID extrait du QR
-   - eventId : optionnel — si fourni, vérifie que le billet appartient à cet événement
-*/
+/* ─── POST /api/admin/scanner ─────────────────────────────── */
 export async function POST(req: NextRequest) {
     try {
         await requireAdminApi();
-
         const body = await req.json();
         const { qrRaw, eventId } = body as { qrRaw?: string; eventId?: string };
 
@@ -50,81 +40,67 @@ export async function POST(req: NextRequest) {
 
         const qrCode = extractQrCode(qrRaw);
 
-        // Rechercher le billet par qrCode
         const ticket = await prisma.ticket.findUnique({
             where: { qrCode },
             include: {
                 event: true,
-                user: {
-                    select: { name: true, email: true, filiere: true, promotion: true },
-                },
+                user: { select: { name: true, email: true, filiere: true, promotion: true } },
+                ticketType: { select: { name: true, description: true, price: true } },
             },
         });
 
-        // Billet introuvable
         if (!ticket) {
             return NextResponse.json({
-                ok: false,
-                code: "NOT_FOUND",
+                ok: false, code: "NOT_FOUND",
                 message: "Billet introuvable. Ce QR code n'est pas reconnu.",
             });
         }
 
-        // Mauvais événement
         if (eventId && ticket.eventId !== eventId) {
             return NextResponse.json({
-                ok: false,
-                code: "WRONG_EVENT",
+                ok: false, code: "WRONG_EVENT",
                 message: `Ce billet est pour l'événement "${ticket.event.title}", pas celui sélectionné.`,
                 ticket: serializeTicket(ticket),
             });
         }
 
-        // Déjà scanné
         if (ticket.status === "SCANNED") {
             return NextResponse.json({
-                ok: false,
-                code: "ALREADY_SCANNED",
+                ok: false, code: "ALREADY_SCANNED",
                 message: "Ce billet a déjà été utilisé à l'entrée.",
                 ticket: serializeTicket(ticket),
             });
         }
 
-        // Annulé
         if (ticket.status === "CANCELLED") {
             return NextResponse.json({
-                ok: false,
-                code: "CANCELLED",
+                ok: false, code: "CANCELLED",
                 message: "Ce billet a été annulé et n'est plus valide.",
                 ticket: serializeTicket(ticket),
             });
         }
 
-        // En attente de paiement
-        if (ticket.status === "PENDING") {
+        if (ticket.status === "PENDING" || ticket.status === "PENDING_REVIEW") {
             return NextResponse.json({
-                ok: false,
-                code: "PENDING",
+                ok: false, code: "PENDING",
                 message: "Ce billet est en attente de confirmation de paiement.",
                 ticket: serializeTicket(ticket),
             });
         }
 
-        // CONFIRMED → passer à SCANNED
+        // CONFIRMED → SCANNED
         const updated = await prisma.ticket.update({
             where: { id: ticket.id },
             data: { status: "SCANNED" },
             include: {
                 event: true,
-                user: {
-                    select: { name: true, email: true, filiere: true, promotion: true },
-                },
+                user: { select: { name: true, email: true, filiere: true, promotion: true } },
+                ticketType: { select: { name: true, description: true, price: true } },
             },
         });
 
         return NextResponse.json({
-            ok: true,
-            code: "VALID",
+            ok: true, code: "VALID",
             message: "Billet valide. Entrée autorisée.",
             ticket: serializeTicket(updated),
         });
@@ -133,19 +109,14 @@ export async function POST(req: NextRequest) {
     }
 }
 
-/* ─── GET /api/admin/scanner?q= — recherche manuelle ──────────
-   Recherche par : email, nom, code billet (qrCode)
-*/
+/* ─── GET /api/admin/scanner?q= — recherche manuelle ──────── */
 export async function GET(req: NextRequest) {
     try {
         await requireAdminApi();
-
         const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
         const eventId = req.nextUrl.searchParams.get("eventId") ?? undefined;
 
-        if (q.length < 2) {
-            return NextResponse.json({ tickets: [] });
-        }
+        if (q.length < 2) return NextResponse.json({ tickets: [] });
 
         const tickets = await prisma.ticket.findMany({
             where: {
@@ -158,17 +129,14 @@ export async function GET(req: NextRequest) {
             },
             include: {
                 event: { select: { id: true, title: true, date: true } },
-                user: {
-                    select: { name: true, email: true, filiere: true, promotion: true },
-                },
+                user: { select: { name: true, email: true, filiere: true, promotion: true } },
+                ticketType: { select: { name: true, description: true, price: true } },
             },
             orderBy: { createdAt: "desc" },
             take: 20,
         });
 
-        return NextResponse.json({
-            tickets: tickets.map(serializeTicket),
-        });
+        return NextResponse.json({ tickets: tickets.map(serializeTicket) });
     } catch (error) {
         return errorResponse(error);
     }
@@ -182,6 +150,7 @@ function serializeTicket(ticket: {
     createdAt: Date;
     event: { id: string; title: string; date: Date; location?: string };
     user: { name: string; email: string; filiere: string | null; promotion: string | null };
+    ticketType: { name: string; description: string | null; price: number } | null;
 }) {
     return {
         id: ticket.id,
@@ -196,5 +165,6 @@ function serializeTicket(ticket: {
             location: "location" in ticket.event ? ticket.event.location : undefined,
         },
         user: ticket.user,
+        ticketType: ticket.ticketType ?? null,
     };
 }
