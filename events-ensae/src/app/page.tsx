@@ -1,3 +1,5 @@
+export const revalidate = 0;
+
 // src/app/page.tsx
 import Link from "next/link";
 import Image from "next/image";
