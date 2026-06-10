@@ -2,7 +2,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* Domaines autorisés en dev (ngrok) — ignorés en prod */
   allowedDevOrigins: ["stoplight-devouring-deferral.ngrok-free.dev"],
 
   images: {
@@ -14,6 +13,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
     ],
   },

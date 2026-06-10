@@ -5,26 +5,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Save, ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 import styles from "../admin.module.css";
 
 export type EventFormData = {
     title: string;
     description: string;
     category: string;
-    date: string;        // ISO datetime-local string
+    date: string;
     location: string;
     imageUrl: string;
     price: string;
     capacity: string;
     deadline: string;
     published: boolean;
-    tags: string;        // virgule-séparés
+    tags: string;
     allowsMusicSuggestions: boolean;
 };
 
 type Props = {
     initialData?: Partial<EventFormData>;
-    eventId?: string;    // si présent = mode édition
+    eventId?: string;
 };
 
 const EMPTY: EventFormData = {
@@ -102,7 +103,8 @@ export function EventForm({ initialData, eventId }: Props) {
     return (
         <div>
             <div style={{ marginBottom: 24 }}>
-                <Link href="/admin/evenements" className="btn btn-ghost btn-sm" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                <Link href="/admin/evenements" className="btn btn-ghost btn-sm"
+                    style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
                     <ArrowLeft size={14} /> Retour aux événements
                 </Link>
             </div>
@@ -133,6 +135,15 @@ export function EventForm({ initialData, eventId }: Props) {
                                 value={form.description} onChange={(e) => set("description", e.target.value)}
                                 placeholder="Description complète de l'événement…"
                                 style={{ resize: "vertical" }} />
+                        </div>
+
+                        {/* Image upload */}
+                        <div className={`form-group ${styles.formGridFull}`}>
+                            <ImageUpload
+                                value={form.imageUrl}
+                                onChange={(url) => set("imageUrl", url)}
+                                label="Image de l'événement"
+                            />
                         </div>
 
                         {/* Catégorie */}
@@ -183,14 +194,6 @@ export function EventForm({ initialData, eventId }: Props) {
                                 value={form.capacity} onChange={(e) => set("capacity", e.target.value)} />
                         </div>
 
-                        {/* Image URL */}
-                        <div className={`form-group ${styles.formGridFull}`}>
-                            <label className="form-label" htmlFor="imageUrl">URL de l&apos;image</label>
-                            <input id="imageUrl" type="url" className="form-input"
-                                value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)}
-                                placeholder="https://images.unsplash.com/…" />
-                        </div>
-
                         {/* Tags */}
                         <div className={`form-group ${styles.formGridFull}`}>
                             <label className="form-label" htmlFor="tags">Tags (séparés par des virgules)</label>
@@ -200,7 +203,8 @@ export function EventForm({ initialData, eventId }: Props) {
                         </div>
 
                         {/* Options */}
-                        <div className={`form-group ${styles.formGridFull}`} style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                        <div className={`form-group ${styles.formGridFull}`}
+                            style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.9rem" }}>
                                 <input type="checkbox" checked={form.published}
                                     onChange={(e) => set("published", e.target.checked)} />
