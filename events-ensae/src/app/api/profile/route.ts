@@ -4,12 +4,15 @@ import { errorResponse } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
 
 const FILIERES = [
-    "Statistique", "Démographie", "Économie",
-    "Informatique Statistique", "Planification", "Autre",
+    "ISEP",
+    "AS",
+    "ISE",
+    "ALUMNI",
+    "Autre",
 ];
 
 const PROMOTIONS = [
-    "1ère année", "2ème année", "3ème année", "Master 1", "Master 2",
+    "1ère année", "2ème année", "3ème année", "Autre",
 ];
 
 /* GET /api/profile — retourne le profil courant */
