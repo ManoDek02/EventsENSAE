@@ -135,7 +135,7 @@ export function Navbar() {
                   <div className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.danger}`}
-                    onClick={() => signOut({ callbackUrl: `${window.location.origin}/` })}
+                    onClick={() => signOut({ redirectTo: "/" })}
                   >
                     <LogOut size={16} /> Se déconnecter
                   </button>
