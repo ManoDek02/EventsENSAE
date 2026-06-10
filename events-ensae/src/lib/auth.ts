@@ -1,11 +1,16 @@
+// src/lib/auth.ts
+// Authentification côté Node.js (API routes, Server Components)
+// NE PAS importer dans le middleware — utiliser auth.config.ts à la place
+
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { EmailNotVerifiedError } from "@/lib/auth-errors-custom";
+import { authConfig } from "@/lib/auth.config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   providers: [
     Credentials({
       name: "credentials",
@@ -22,7 +27,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!user || !user.password) return null;
 
-        // Vérifie que le compte est vérifié
         if (!user.emailVerified) {
           throw new EmailNotVerifiedError();
         }
@@ -44,27 +48,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: string }).role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
-  session: {
-    strategy: "jwt",
-  },
 });

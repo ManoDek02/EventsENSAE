@@ -1,5 +1,11 @@
+// src/middleware.ts
+// Middleware Edge — utilise auth.config.ts (sans Prisma) pour rester sous 1 MB
+
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authConfig } from "@/lib/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 const AUTH_ROUTES = ["/profile", "/music"];
 const ADMIN_ROUTES = ["/admin"];
@@ -27,7 +33,7 @@ export default auth((req) => {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (session.user.role !== "ADMIN") {
+    if ((session.user as { role?: string })?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
