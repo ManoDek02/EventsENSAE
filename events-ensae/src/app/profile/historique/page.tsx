@@ -12,7 +12,6 @@ export default async function HistoriquePage() {
     const userId = session.user.id;
 
     const [pastTickets, musicSuggestions, votes] = await Promise.all([
-        /* Événements passés avec billet confirmé ou scanné */
         prisma.ticket.findMany({
             where: {
                 userId,
@@ -23,7 +22,6 @@ export default async function HistoriquePage() {
             orderBy: { event: { date: "desc" } },
         }),
 
-        /* Musiques proposées */
         prisma.musicSuggestion.findMany({
             where: { userId },
             include: {
@@ -33,7 +31,6 @@ export default async function HistoriquePage() {
             orderBy: { createdAt: "desc" },
         }),
 
-        /* Votes effectués */
         prisma.vote.findMany({
             where: { userId },
             include: {
@@ -95,10 +92,10 @@ export default async function HistoriquePage() {
                         </div>
                     ) : (
                         <div className={styles.historyList}>
-                            {pastTickets.map(({ ticket, event }: { ticket: { id: string; status: string; qrCode: string }, event: { id: string; title: string; date: Date; location: string } }) => (
+                            {pastTickets.map((item) => (
                                 <Link
-                                    key={ticket.id}
-                                    href={`/events/${event.id}`}
+                                    key={item.id}
+                                    href={`/events/${item.event.id}`}
                                     className={styles.historyItem}
                                     style={{ textDecoration: "none" }}
                                 >
@@ -106,19 +103,19 @@ export default async function HistoriquePage() {
                                         <Calendar size={17} />
                                     </div>
                                     <div className={styles.historyItemBody}>
-                                        <div className={styles.historyItemTitle}>{event.title}</div>
+                                        <div className={styles.historyItemTitle}>{item.event.title}</div>
                                         <div className={styles.historyItemMeta}>
-                                            {formatEventDate(event.date)}
+                                            {formatEventDate(item.event.date)}
                                             &nbsp;·&nbsp;
                                             <MapPin size={11} style={{ display: "inline", verticalAlign: "middle" }} />
-                                            &nbsp;{event.location}
+                                            &nbsp;{item.event.location}
                                         </div>
                                     </div>
-                                    <span className={`${styles.historyItemBadge} ${ticket.status === "SCANNED"
-                                            ? styles.historyItemBadgeGray
-                                            : styles.historyItemBadgeGreen
+                                    <span className={`${styles.historyItemBadge} ${item.status === "SCANNED"
+                                        ? styles.historyItemBadgeGray
+                                        : styles.historyItemBadgeGreen
                                         }`}>
-                                        {ticket.status === "SCANNED" ? "Utilisé" : "Confirmé"}
+                                        {item.status === "SCANNED" ? "Utilisé" : "Confirmé"}
                                     </span>
                                 </Link>
                             ))}
@@ -147,12 +144,7 @@ export default async function HistoriquePage() {
                         </div>
                     ) : (
                         <div className={styles.historyList}>
-                            {musicSuggestions.map((s: {
-                                id: string; title: string; artist: string;
-                                event: { title: string };
-                                _count: { votes: number };
-                                approved: boolean;
-                            }) => (
+                            {musicSuggestions.map((s) => (
                                 <div key={s.id} className={styles.historyItem}>
                                     <div className={styles.historyItemIcon}>
                                         <Music size={17} />
@@ -166,8 +158,8 @@ export default async function HistoriquePage() {
                                         </div>
                                     </div>
                                     <span className={`${styles.historyItemBadge} ${s.approved
-                                            ? styles.historyItemBadgeGreen
-                                            : styles.historyItemBadgeGold
+                                        ? styles.historyItemBadgeGreen
+                                        : styles.historyItemBadgeGold
                                         }`}>
                                         {s.approved ? "Approuvée" : "En attente"}
                                     </span>
@@ -198,13 +190,7 @@ export default async function HistoriquePage() {
                         </div>
                     ) : (
                         <div className={styles.historyList}>
-                            {votes.map((v: {
-                                id: string;
-                                musicSuggestion: {
-                                    title: string; artist: string;
-                                    event: { title: string };
-                                };
-                            }) => (
+                            {votes.map((v) => (
                                 <div key={v.id} className={styles.historyItem}>
                                     <div className={styles.historyItemIcon}>
                                         <ThumbsUp size={17} />
