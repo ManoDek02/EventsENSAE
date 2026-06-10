@@ -7,11 +7,10 @@ import { ArrowLeft, CheckCircle2, AlertTriangle, Save } from "lucide-react";
 import styles from "../profile.module.css";
 
 const FILIERES = [
-    "Statistique",
-    "Démographie",
-    "Économie",
-    "Informatique Statistique",
-    "Planification",
+    "ISEP",
+    "AS",
+    "ISE",
+    "ALUMNI",
     "Autre",
 ];
 
@@ -19,8 +18,7 @@ const PROMOTIONS = [
     "1ère année",
     "2ème année",
     "3ème année",
-    "Master 1",
-    "Master 2",
+    "Autre",
 ];
 
 export default function ModifierProfilePage() {
