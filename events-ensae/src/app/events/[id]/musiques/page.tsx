@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { MusicCard } from "@/components/music/MusicCard";
 import styles from "@/app/music/music.module.css";
-import eventStyles from "../events.module.css";
+import eventStyles from "../../events.module.css";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -161,8 +161,8 @@ export default async function EventMusiquesPage({ params }: Props) {
                                             padding: "16px 20px", background: "var(--bg-surface)"
                                         }}>
                                             <span className={`${styles.rankBadge} ${i === 0 ? styles.rankBadge1 :
-                                                    i === 1 ? styles.rankBadge2 :
-                                                        styles.rankBadge3
+                                                i === 1 ? styles.rankBadge2 :
+                                                    styles.rankBadge3
                                                 }`}>
                                                 {i + 1}
                                             </span>
