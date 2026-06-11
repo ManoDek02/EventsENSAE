@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         const {
             title, description, category, date, location,
             imageUrl, price, capacity, deadline, published,
-            tags, allowsMusicSuggestions,
+            tags, allowsMusicSuggestions, adminEmail,
         } = body;
 
         if (!title?.trim()) return NextResponse.json({ error: "Le titre est obligatoire." }, { status: 400 });
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
                 published: Boolean(published),
                 tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
                 allowsMusicSuggestions: Boolean(allowsMusicSuggestions),
+                adminEmail: adminEmail?.trim() || null,
             },
         });
 

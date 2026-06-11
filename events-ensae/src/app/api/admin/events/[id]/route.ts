@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const {
             title, description, category, date, location,
             imageUrl, price, capacity, deadline, published,
-            tags, allowsMusicSuggestions, cancelled,
+            tags, allowsMusicSuggestions, cancelled, adminEmail,
         } = body;
 
         const VALID_CATEGORIES = ["SORTIE_PEDAGOGIQUE", "CHAMPIONNAT", "GALA", "CONFERENCE", "AUTRE"];
@@ -73,6 +73,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
                 ...(published !== undefined ? { published: Boolean(published) } : {}),
                 ...(tags !== undefined ? { tags: Array.isArray(tags) ? tags.filter(Boolean) : [] } : {}),
                 ...(allowsMusicSuggestions !== undefined ? { allowsMusicSuggestions: Boolean(allowsMusicSuggestions) } : {}),
+                ...(adminEmail !== undefined ? { adminEmail: adminEmail?.trim() || null } : {}),
                 // "cancelled" = dépublié + deadline passée (soft cancel)
                 ...(cancelled === true ? { published: false, deadline: new Date(Date.now() - 1000) } : {}),
             },
