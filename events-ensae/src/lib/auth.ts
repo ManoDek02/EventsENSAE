@@ -1,6 +1,5 @@
 // src/lib/auth.ts
-// Authentification côté Node.js (API routes, Server Components)
-// NE PAS importer dans le middleware — utiliser auth.config.ts à la place
+// Les permissions sont incluses dans le JWT pour que le middleware puisse les lire
 
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -44,8 +43,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           image: user.image,
           role: user.role,
+          permissions: user.permissions, // ← inclure les permissions
         };
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role?: string }).role;
+        token.permissions = (user as { permissions?: string[] }).permissions ?? [];
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        (session.user as { role?: string }).role = token.role as string;
+        (session.user as { permissions?: string[] }).permissions = token.permissions as string[] ?? [];
+      }
+      return session;
+    },
+  },
 });

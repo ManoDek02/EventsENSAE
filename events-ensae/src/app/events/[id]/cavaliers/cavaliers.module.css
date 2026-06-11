@@ -1,0 +1,476 @@
+/* src/app/events/[id]/cavaliers/cavaliers.module.css */
+
+/* ─── Page wrapper ─────────────────────────────────────────── */
+.page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #fff0f5 0%, #ffffff 40%);
+    padding-top: var(--navbar-height);
+}
+
+/* ─── Hero romantique ──────────────────────────────────────── */
+.hero {
+    background: linear-gradient(135deg, #590d22 0%, #800f2f 50%, #a4133c 100%);
+    padding: 60px 0 52px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 183, 197, 0.15) 0%, transparent 65%);
+    border-radius: 50%;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(180deg, #fff0f5 0%, #fff0f5 100%);
+    border-radius: 24px 24px 0 0;
+}
+
+.heroIcon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.heroTitle {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 400;
+    font-style: italic;
+    color: #ffb3c6;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+    position: relative;
+    z-index: 1;
+}
+
+.heroSub {
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255, 179, 198, 0.7);
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Contenu ──────────────────────────────────────────────── */
+.content {
+    padding: 48px 0 80px;
+}
+
+/* ─── Mon statut ───────────────────────────────────────────── */
+.myStatus {
+    background: #fff0f5;
+    border: 1px solid #ffb3c6;
+    border-radius: var(--radius-xl);
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.myStatusText {
+    font-size: 0.9rem;
+    color: #800f2f;
+    font-weight: 600;
+}
+
+.myStatusSub {
+    font-size: 0.8rem;
+    color: #a4133c;
+    margin-top: 3px;
+    font-weight: 400;
+}
+
+/* ─── Bouton créer demande ─────────────────────────────────── */
+.btnRomantic {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    background: linear-gradient(135deg, #c9184a, #e05c8a);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(201, 24, 74, 0.3);
+}
+
+.btnRomantic:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(201, 24, 74, 0.4);
+}
+
+.btnRomanticGhost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: transparent;
+    color: #c9184a !important;
+    border: 1.5px solid #ffb3c6;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btnRomanticGhost:hover {
+    background: #fff0f5;
+    border-color: #c9184a;
+}
+
+/* ─── Grille de cartes ─────────────────────────────────────── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* ─── Carte demande ────────────────────────────────────────── */
+.card {
+    background: #ffffff;
+    border: 1px solid #f5d0de;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(180, 30, 60, 0.08);
+    transition: all 0.22s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 36px rgba(180, 30, 60, 0.15);
+    border-color: #ffb3c6;
+}
+
+.cardRoseLine {
+    height: 3px;
+    background: linear-gradient(90deg, #c9184a, #e05c8a, #ffb3c6);
+}
+
+.cardBody {
+    padding: 22px;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.cardPhoto {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffb3c6;
+    flex-shrink: 0;
+}
+
+.cardPhotoPlaceholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffb3c6, #ff758f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    border: 2px solid #ffb3c6;
+}
+
+.cardName {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #590d22;
+    margin-bottom: 3px;
+}
+
+.cardMeta {
+    font-size: 0.78rem;
+    color: #a4133c;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.cardTitle {
+    font-size: 1.05rem;
+    font-style: italic;
+    font-weight: 400;
+    color: #800f2f;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.cardTitle::before {
+    content: '"';
+    color: #ffb3c6;
+    font-size: 1.3em;
+}
+
+.cardTitle::after {
+    content: '"';
+    color: #ffb3c6;
+    font-size: 1.3em;
+}
+
+.cardMessage {
+    font-size: 0.875rem;
+    color: #6b2737;
+    line-height: 1.65;
+    margin-bottom: 14px;
+}
+
+.cardGender {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 12px;
+    background: #fff0f5;
+    border: 1px solid #ffb3c6;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #c9184a;
+    margin-bottom: 16px;
+}
+
+.cardFooter {
+    padding: 14px 22px;
+    border-top: 1px solid #fde8f0;
+    background: #fff8fb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.cardDate {
+    font-size: 0.75rem;
+    color: #a4133c;
+    opacity: 0.7;
+}
+
+/* ─── Formulaire création demande ──────────────────────────── */
+.formOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(89, 13, 34, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.formModal {
+    background: #fff8fb;
+    border: 1px solid #ffb3c6;
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(89, 13, 34, 0.3);
+}
+
+.formModalTitle {
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #590d22;
+    text-align: center;
+    margin-bottom: 6px;
+    font-weight: 400;
+}
+
+.formModalSub {
+    font-family: Arial, sans-serif;
+    font-size: 0.8rem;
+    color: #a4133c;
+    text-align: center;
+    margin-bottom: 28px;
+    line-height: 1.6;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.formLabel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #800f2f;
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.03em;
+}
+
+.formInput {
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1.5px solid #ffb3c6;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: #590d22;
+    outline: none;
+    font-family: Georgia, serif;
+    transition: border-color 0.15s;
+}
+
+.formInput:focus {
+    border-color: #c9184a;
+}
+
+.formInput::placeholder {
+    color: #d4a0b0;
+}
+
+.formTextarea {
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1.5px solid #ffb3c6;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: #590d22;
+    outline: none;
+    font-family: Georgia, serif;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.15s;
+    line-height: 1.6;
+}
+
+.formTextarea:focus {
+    border-color: #c9184a;
+}
+
+.formSelect {
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1.5px solid #ffb3c6;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: #590d22;
+    outline: none;
+    cursor: pointer;
+}
+
+.formActions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #fde8f0;
+}
+
+/* ─── Modal proposition ────────────────────────────────────── */
+.proposalTarget {
+    background: #fff0f5;
+    border: 1px solid #ffb3c6;
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.proposalTargetName {
+    font-weight: 700;
+    color: #590d22;
+    font-size: 0.9rem;
+}
+
+.proposalTargetTitle {
+    font-size: 0.8rem;
+    color: #a4133c;
+    font-style: italic;
+}
+
+/* ─── Empty state romantique ───────────────────────────────── */
+.empty {
+    text-align: center;
+    padding: 72px 24px;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.5;
+}
+
+.emptyTitle {
+    font-size: 1.2rem;
+    color: #800f2f;
+    font-style: italic;
+    margin-bottom: 8px;
+}
+
+.emptyText {
+    font-family: Arial, sans-serif;
+    font-size: 0.875rem;
+    color: #a4133c;
+    max-width: 360px;
+    margin: 0 auto 24px;
+    line-height: 1.65;
+}
+
+/* ─── Alert match ──────────────────────────────────────────── */
+.matchAlert {
+    background: linear-gradient(135deg, #fff0f5, #ffe4ef);
+    border: 1.5px solid #c9184a;
+    border-radius: var(--radius-xl);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.matchAlertTitle {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #590d22;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.matchAlertText {
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    color: #800f2f;
+}
+
+/* ─── Responsive ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .formModal {
+        padding: 24px 20px;
+    }
+}

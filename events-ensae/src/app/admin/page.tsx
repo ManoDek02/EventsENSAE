@@ -4,19 +4,44 @@ import {
   Calendar, Settings, Ticket, Users, Music,
   TrendingUp, Clock, CheckCircle2, AlertCircle,
   Bell,
+  AlertTriangle,
 } from "lucide-react";
 import { requireAdmin } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "./AdminNav";
 import styles from "./admin.module.css";
 import appStyles from "../app-page.module.css";
+import { requireApiAuth } from "@/lib/auth-api";
+import { hasPermission, Permission } from "@/lib/permissions";
+import { forbidden } from "@/lib/api-errors";
+import error from "../error";
+
 
 export const metadata = {
   title: "Administration | ENSAE Events",
 };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdmin();
+  const { error } = await searchParams;
+  async function requirePermissionApi(permission: Permission) {
+    const session = await requireApiAuth();
+    if (session.user.role !== "ADMIN") throw forbidden();
+    
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { permissions: true },
+    });
+    
+    if (!user || !hasPermission(user.permissions, permission)) {
+      throw forbidden("Permission insuffisante.");
+    }
+    return session;
+}
 
   const [
     eventCount, ticketConfirmed, ticketPending, userCount,
@@ -66,7 +91,12 @@ export default async function AdminPage() {
 
       <div className="container">
         <AdminNav />
-
+        {error === "forbidden" && (
+          <div className={styles.alertError} style={{ marginBottom: 20 }}>
+            <AlertTriangle size={15} />
+            Vous n&apos;avez pas les permissions nécessaires pour accéder à cette section.
+          </div>
+        )}
         {/* Stats */}
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
