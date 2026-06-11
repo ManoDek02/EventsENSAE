@@ -11,6 +11,7 @@ export const authConfig: NextAuthConfig = {
             if (user) {
                 token.id = user.id;
                 token.role = (user as { role?: string }).role;
+                token.permissions = (user as { permissions?: string[] }).permissions ?? []; // ← ajouter
             }
             return token;
         },
@@ -18,6 +19,7 @@ export const authConfig: NextAuthConfig = {
             if (token && session.user) {
                 session.user.id = token.id as string;
                 (session.user as { role?: string }).role = token.role as string;
+                (session.user as { permissions?: string[] }).permissions = token.permissions as string[] ?? []; // ← ajouter
             }
             return session;
         },

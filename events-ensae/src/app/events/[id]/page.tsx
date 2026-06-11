@@ -6,11 +6,12 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
+  Heart,
   MapPin,
   Music,
   Sparkles,
   Ticket,
-  Users,
+  Users
 } from "lucide-react";
 import {
   canRegister,
@@ -249,6 +250,33 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   price: t.price,
                 }))}
               />
+
+              {/* ─── Bouton cavalier/cavalière (Gala uniquement) ── */}
+              {event.category === "GALA" && (
+                <Link
+                  href={`/events/${event.id}/cavaliers`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    width: "100%",
+                    marginTop: "12px",
+                    padding: "11px 20px",
+                    border: "1.5px solid #ffb3c6",
+                    borderRadius: "999px",
+                    color: "#c9184a",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    background: "#fff0f5",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <Heart size={15} fill="#c9184a" color="#c9184a" />
+                  Trouver mon cavalier / ma cavalière
+                </Link>
+              )}
             </aside>
           </div>
         </div>

@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
                 name: true,
                 email: true,
                 role: true,
+                permissions: true,
                 filiere: true,
                 promotion: true,
                 emailVerified: true,
