@@ -105,7 +105,7 @@
 .statsGrid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    divide-x: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
 }
 
 .statItem {

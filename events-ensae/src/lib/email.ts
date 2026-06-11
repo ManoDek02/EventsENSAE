@@ -251,3 +251,92 @@ export async function sendPlaylistAnnouncementEmail(
     html: layout("Playlist officielle", "La playlist est prête !", `${eventTitle} — ${eventDate}`, body),
   });
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   6. NOTIFICATION PAIEMENT À VÉRIFIER (envoyé à l'admin)
+══════════════════════════════════════════════════════════════ */
+export async function sendPaymentNotificationEmail({
+  adminEmail,
+  studentName,
+  studentFiliere,
+  studentPromotion,
+  eventTitle,
+  eventDate,
+  amount,
+  reference,
+  ticketTypeName,
+  paymentProofUrl,
+  participantsUrl,
+}: {
+  adminEmail: string;
+  studentName: string;
+  studentFiliere?: string | null;
+  studentPromotion?: string | null;
+  eventTitle: string;
+  eventDate: string;
+  amount: number;
+  reference: string;
+  ticketTypeName?: string | null;
+  paymentProofUrl: string;
+  participantsUrl: string;
+}) {
+  const meta = [studentFiliere, studentPromotion].filter(Boolean).join(" — ");
+
+  const body = `
+    <p class="greeting">
+      Un étudiant vient de signaler un paiement pour <strong>${eventTitle}</strong>.
+      Veuillez vérifier la preuve ci-dessous et confirmer ou rejeter le billet.
+    </p>
+
+    <div class="event-card">
+      <div class="event-label">Étudiant</div>
+      <div class="event-title">${studentName}</div>
+      ${meta ? `<div class="event-date">${meta}</div>` : ""}
+    </div>
+
+    <div class="event-card" style="margin-top:12px;">
+      <div class="event-label">Détails du paiement</div>
+      <div class="event-title">${eventTitle}</div>
+      <div class="event-date">${eventDate}</div>
+      ${ticketTypeName ? `<div class="event-date">Type : ${ticketTypeName}</div>` : ""}
+      <div class="event-date" style="font-weight:700; margin-top:6px;">
+        Montant : ${amount.toLocaleString("fr-FR")} FCFA
+      </div>
+      <div class="event-date">Référence : <strong>${reference}</strong></div>
+    </div>
+
+    <div style="margin: 24px 0; text-align:center;">
+      <div style="font-family:Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#71717A; margin-bottom:10px;">
+        Preuve de paiement
+      </div>
+      <a href="${paymentProofUrl}" target="_blank" rel="noopener noreferrer">
+        <img
+          src="${paymentProofUrl}"
+          alt="Preuve de paiement"
+          style="max-width:100%; border-radius:8px; border:1px solid rgba(27,58,110,0.13); box-shadow:0 4px 16px rgba(15,35,71,0.12);"
+        />
+      </a>
+      <div style="font-family:Arial,sans-serif; font-size:11px; color:#71717A; margin-top:8px; font-style:italic;">
+        Cliquez sur l'image pour l'agrandir
+      </div>
+    </div>
+
+    <div class="btn-wrap">
+      <a href="${participantsUrl}" class="btn">Valider ou rejeter le billet</a>
+    </div>
+    <div class="divider"></div>
+    <p class="warning">Vérifiez que le montant et la référence correspondent avant de confirmer.</p>
+  `;
+
+  await sendMail({
+    to: adminEmail,
+    subject: `💳 Paiement à vérifier — ${studentName} · ${eventTitle}`,
+    html: layout(
+      "Notification paiement",
+      `Nouveau paiement à vérifier`,
+      `${eventTitle} — ENSAE Événements`,
+      body
+    ),
+  });
+}

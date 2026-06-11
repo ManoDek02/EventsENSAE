@@ -88,7 +88,10 @@ async function main() {
     console.log(`→ ${eventCount} événement(s) déjà en base, seed événements ignoré`);
   }
 
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "Admin123!";
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error("SEED_ADMIN_PASSWORD is not defined");
+  }
   await prisma.user.upsert({
     where: { email: "admin@ensae.sn" },
     update: {},

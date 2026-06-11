@@ -92,6 +92,7 @@ model Event {
   price                  Float         @default(0)
   capacity               Int
   deadline               DateTime?
+  adminEmail  String?
   published              Boolean       @default(false)
   tags                   String[]
   allowsMusicSuggestions Boolean       @default(false)
@@ -138,6 +139,7 @@ model Ticket {
   qrCode       String       @unique
   status       TicketStatus @default(PENDING)
   paymentId    String?
+  paymentProofUrl  String?
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -237,6 +239,7 @@ model EscortRequest {
   photoUrl         String?
   genderPreference GenderPreference     @default(INDIFFERENT)
   status           EscortRequestStatus  @default(OPEN)
+  phoneNumber      String?
 
   event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   requester User            @relation("EscortRequests", fields: [requesterId], references: [id], onDelete: Cascade)
@@ -252,6 +255,7 @@ model EscortProposal {
   proposerId String
   message    String
   status     EscortProposalStatus @default(PENDING)
+  phoneNumber String?
 
   request  EscortRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
   proposer User          @relation("EscortProposals", fields: [proposerId], references: [id], onDelete: Cascade)
