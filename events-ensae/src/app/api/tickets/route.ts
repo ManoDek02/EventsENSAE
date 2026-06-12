@@ -1,5 +1,5 @@
 // src/app/api/tickets/route.ts
-// Race condition corrigée — vérification + création dans une transaction Prisma
+// DRAFT : billet créé sans occuper de place, passe en PENDING_REVIEW après paiement signalé
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
@@ -15,7 +15,10 @@ export async function GET() {
     const session = await requireApiAuth();
 
     const tickets = await prisma.ticket.findMany({
-      where: { userId: session.user.id },
+      where: {
+        userId: session.user.id,
+        status: { not: "DRAFT" }, // ← ne pas afficher les brouillons
+      },
       include: { event: true, ticketType: true },
       orderBy: { createdAt: "desc" },
     });
@@ -63,10 +66,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "eventId est requis." }, { status: 400 });
     }
 
-    /* ── Validation préliminaire hors transaction ─────────────
-       (légère, sans verrou — juste pour retourner des erreurs
-       claires avant d'entrer dans la transaction)
-    ─────────────────────────────────────────────────────────── */
     const event = await prisma.event.findUnique({
       where: { id: eventId, published: true },
       include: { ticketTypes: true },
@@ -80,9 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Les inscriptions sont closes." }, { status: 400 });
     }
 
-    /* ── Résoudre le type de billet ───────────────────────────
-       (hors transaction car pas d'écriture)
-    ─────────────────────────────────────────────────────────── */
+    /* ── Résoudre le type de billet ───────────────────────── */
     let resolvedPrice = event.price;
     let resolvedTicketTypeId: string | null = null;
     let requiredSeats = 1;
@@ -103,23 +100,75 @@ export async function POST(req: NextRequest) {
       requiredSeats = ticketType.seats ?? 1;
     }
 
-    /* ══════════════════════════════════════════════════════════
-       TRANSACTION — vérification atomique + création du billet
-       Toutes les lectures critiques + l'écriture sont dans le
-       même bloc transactionnel avec isolation SERIALIZABLE pour
-       éviter les race conditions de surréservation.
-    ══════════════════════════════════════════════════════════ */
-    const ticket = await prisma.$transaction(async (tx) => {
+    const isFree = resolvedPrice === 0;
 
-      /* 1. Vérifier billet existant (dans la transaction) */
+    /* ── Transaction pour les événements payants ──────────── */
+    if (!isFree) {
+      /* Pour les billets payants, on crée un DRAFT sans vérifier la capacité.
+         La capacité sera vérifiée au moment du notify-payment. */
+
+      // Annuler tout DRAFT existant pour cet événement
+      await prisma.ticket.updateMany({
+        where: { userId, eventId, status: "DRAFT" },
+        data: { status: "CANCELLED" },
+      });
+
+      // Vérifier qu'il n'y a pas déjà un billet actif (non DRAFT, non CANCELLED)
+      const existing = await prisma.ticket.findFirst({
+        where: {
+          userId, eventId,
+          status: { notIn: ["CANCELLED", "DRAFT"] },
+        },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { error: "Vous avez déjà réservé pour cet événement." },
+          { status: 400 }
+        );
+      }
+
+      const qrCode = randomUUID();
+      const ticket = await prisma.ticket.create({
+        data: {
+          userId, eventId,
+          ticketTypeId: resolvedTicketTypeId,
+          qrCode,
+          status: "DRAFT", // ← ne bloque pas de place
+        },
+        include: { event: true, ticketType: true },
+      });
+
+      return NextResponse.json(
+        {
+          ticket: {
+            id: ticket.id,
+            eventId: ticket.eventId,
+            status: ticket.status,
+            qrCode: ticket.qrCode,
+            ticketType: ticket.ticketType
+              ? {
+                id: ticket.ticketType.id,
+                name: ticket.ticketType.name,
+                price: ticket.ticketType.price,
+                seats: ticket.ticketType.seats,
+              }
+              : null,
+            price: resolvedPrice,
+            requiredSeats,
+          },
+          message: "Réservation enregistrée. Veuillez effectuer le paiement.",
+        },
+        { status: 201 }
+      );
+    }
+
+    /* ── Transaction pour les événements gratuits ─────────── */
+    const ticket = await prisma.$transaction(async (tx) => {
       const existing = await tx.ticket.findFirst({
         where: { userId, eventId, status: { not: "CANCELLED" } },
       });
-      if (existing) {
-        throw new Error("ALREADY_BOOKED");
-      }
+      if (existing) throw new Error("ALREADY_BOOKED");
 
-      /* 2. Calculer les places occupées (dans la transaction) */
       const ticketsWithSeats = await tx.ticket.findMany({
         where: {
           eventId,
@@ -129,44 +178,30 @@ export async function POST(req: NextRequest) {
       });
 
       const occupiedSeats = ticketsWithSeats.reduce(
-        (sum, t) => sum + (t.ticketType?.seats ?? 1),
-        0
+        (sum, t) => sum + (t.ticketType?.seats ?? 1), 0
       );
 
-      /* 3. Vérifier la capacité */
       if (occupiedSeats + requiredSeats > event.capacity) {
         const remaining = event.capacity - occupiedSeats;
-        if (remaining <= 0) {
-          throw new Error("SOLD_OUT");
-        }
-        if (requiredSeats > 1) {
-          throw new Error(`NOT_ENOUGH_SEATS:${remaining}`);
-        }
+        if (remaining <= 0) throw new Error("SOLD_OUT");
+        if (requiredSeats > 1) throw new Error(`NOT_ENOUGH_SEATS:${remaining}`);
         throw new Error("SOLD_OUT");
       }
 
-      /* 4. Créer le billet */
       const qrCode = randomUUID();
-      const isFree = resolvedPrice === 0;
-
       return tx.ticket.create({
         data: {
-          userId,
-          eventId,
+          userId, eventId,
           ticketTypeId: resolvedTicketTypeId,
           qrCode,
-          status: isFree ? "CONFIRMED" : "PENDING",
+          status: "CONFIRMED",
         },
         include: { event: true, ticketType: true },
       });
-    }, {
-      /* Isolation maximale pour éviter les lectures fantômes */
-      isolationLevel: "Serializable",
-    });
+    }, { isolationLevel: "Serializable" });
 
-    /* ── Envoi email QR (hors transaction — pas critique) ──── */
-    const isFree = resolvedPrice === 0;
-    if (isFree && session.user.email) {
+    // Email QR pour les événements gratuits
+    if (session.user.email) {
       try {
         const qrContent = buildTicketQrContent(ticket.qrCode);
         const qrBuffer = await generateQrBuffer(qrContent);
@@ -199,36 +234,24 @@ export async function POST(req: NextRequest) {
             : null,
           price: resolvedPrice,
         },
-        message: isFree
-          ? "Réservation confirmée ! Votre QR code a été envoyé par email."
-          : "Réservation enregistrée. Veuillez effectuer le paiement.",
+        message: "Réservation confirmée ! Votre QR code a été envoyé par email.",
       },
       { status: 201 }
     );
 
   } catch (error) {
-    /* ── Gestion des erreurs métier lancées depuis la transaction */
     if (error instanceof Error) {
       if (error.message === "ALREADY_BOOKED") {
-        return NextResponse.json(
-          { error: "Vous avez déjà réservé pour cet événement." },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Vous avez déjà réservé pour cet événement." }, { status: 400 });
       }
       if (error.message === "SOLD_OUT") {
-        return NextResponse.json(
-          { error: "L'événement est complet." },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
       }
       if (error.message.startsWith("NOT_ENOUGH_SEATS:")) {
         const remaining = error.message.split(":")[1];
-        return NextResponse.json(
-          {
-            error: `Il ne reste que ${remaining} place${Number(remaining) > 1 ? "s" : ""} — insuffisant pour un billet Couple (2 places requises).`,
-          },
-          { status: 400 }
-        );
+        return NextResponse.json({
+          error: `Il ne reste que ${remaining} place${Number(remaining) > 1 ? "s" : ""} — insuffisant pour un billet Couple.`,
+        }, { status: 400 });
       }
     }
     return errorResponse(error);

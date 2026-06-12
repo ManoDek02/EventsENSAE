@@ -1,6 +1,5 @@
 "use client";
 // src/app/events/[id]/cavaliers/page.tsx
-// v3 — ajout du numéro de téléphone dans les formulaires
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -75,13 +74,11 @@ export default function CavaliersPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [proposalTarget, setProposalTarget] = useState<Request | null>(null);
 
-  /* Formulaire création — ajout phoneNumber */
   const [form, setForm] = useState({
     title: "", message: "", photoUrl: "",
     genderPreference: "INDIFFERENT", phoneNumber: "",
   });
 
-  /* Formulaire candidature — ajout phoneNumber */
   const [proposalMsg, setProposalMsg] = useState("");
   const [proposalPhone, setProposalPhone] = useState("");
 
@@ -215,26 +212,15 @@ export default function CavaliersPage() {
   const othersRequests = requests.filter((r) => r.requester.id !== currentUser?.id);
   const pendingProposals = proposals.filter((p) => p.status === "PENDING");
 
-  /* ─── Champ téléphone réutilisable ─────────────────────────── */
-  const PhoneField = ({
-    value, onChange, label = "Numéro de téléphone (partagé uniquement lors du match)",
-  }: { value: string; onChange: (v: string) => void; label?: string }) => (
-    <div className={styles.formGroup}>
-      <label className={styles.formLabel} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-        <Phone size={13} /> {label}
-      </label>
-      <input
-        className={styles.formInput}
-        type="tel"
-        placeholder="Ex: 77 123 45 67"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      <p style={{ fontSize: "0.72rem", color: "#a4133c", marginTop: 4, fontStyle: "italic" }}>
-        Optionnel — visible uniquement par votre cavalier / cavalière après le match.
-      </p>
-    </div>
-  );
+  /* ─── Style inline du champ téléphone ───────────────────────
+     Pas de composant séparé pour éviter le bug de focus lié
+     à la recréation du composant à chaque render.
+  ─────────────────────────────────────────────────────────── */
+  const phoneFieldStyle = {
+    group: { display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "18px" },
+    label: { display: "flex", alignItems: "center", gap: 5, fontSize: "0.8rem", fontWeight: 700, color: "#800f2f", fontFamily: "Arial, sans-serif", letterSpacing: "0.03em" },
+    note: { fontSize: "0.72rem", color: "#a4133c", marginTop: 4, fontStyle: "italic" as const },
+  };
 
   return (
     <div className={styles.page}>
@@ -465,8 +451,24 @@ export default function CavaliersPage() {
                   <option value="FEMME">Une cavalière</option>
                 </select>
               </div>
-              {/* Numéro de téléphone */}
-              <PhoneField value={form.phoneNumber} onChange={(v) => setForm({ ...form, phoneNumber: v })} />
+
+              {/* Téléphone — inliné pour éviter le bug de focus */}
+              <div style={phoneFieldStyle.group}>
+                <label style={phoneFieldStyle.label}>
+                  <Phone size={13} /> Numéro de téléphone (partagé uniquement lors du match)
+                </label>
+                <input
+                  className={styles.formInput}
+                  type="tel"
+                  placeholder="Ex: 77 123 45 67"
+                  value={form.phoneNumber}
+                  onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+                />
+                <p style={phoneFieldStyle.note}>
+                  Optionnel — visible uniquement par votre cavalier / cavalière après le match.
+                </p>
+              </div>
+
               <div className={styles.formGroup}>
                 <ImageUpload value={form.photoUrl} onChange={(url) => setForm({ ...form, photoUrl: url })} label="Photo (optionnelle)" />
               </div>
@@ -508,8 +510,24 @@ export default function CavaliersPage() {
                   placeholder="Présentez-vous et expliquez pourquoi vous seriez le/la partenaire idéal(e)..."
                   value={proposalMsg} onChange={(e) => setProposalMsg(e.target.value)} />
               </div>
-              {/* Numéro de téléphone du candidat */}
-              <PhoneField value={proposalPhone} onChange={setProposalPhone} />
+
+              {/* Téléphone candidat — inliné pour éviter le bug de focus */}
+              <div style={phoneFieldStyle.group}>
+                <label style={phoneFieldStyle.label}>
+                  <Phone size={13} /> Numéro de téléphone (partagé uniquement lors du match)
+                </label>
+                <input
+                  className={styles.formInput}
+                  type="tel"
+                  placeholder="Ex: 77 123 45 67"
+                  value={proposalPhone}
+                  onChange={(e) => setProposalPhone(e.target.value)}
+                />
+                <p style={phoneFieldStyle.note}>
+                  Optionnel — visible uniquement par votre cavalier / cavalière après le match.
+                </p>
+              </div>
+
               <div className={styles.formActions}>
                 <button type="submit" className={styles.btnRomantic} style={{ flex: 1, justifyContent: "center" }} disabled={submitting}>
                   {submitting ? <Loader2 size={15} /> : <Send size={15} />}

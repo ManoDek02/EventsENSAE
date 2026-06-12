@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Loader2, Ticket, Tag } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, Ticket } from "lucide-react";
 import { PaymentInstructions } from "@/components/payment/PaymentInstructions";
 
 type TicketType = {
@@ -49,49 +49,34 @@ export function EventBookingActions({
   const [newTicket, setNewTicket] = useState<{ id: string; code: string; price: number } | null>(null);
 
   const selectedType = ticketTypes.find((t) => t.id === selectedTypeId);
-  const effectivePrice = ticketTypes.length > 0
-    ? (selectedType?.price ?? 0)
-    : price;
+  const effectivePrice = ticketTypes.length > 0 ? (selectedType?.price ?? 0) : price;
   const effectiveIsFree = effectivePrice === 0;
 
   const handleReserve = async () => {
     setLoading(true); setError(""); setSuccess("");
-
     try {
       const body: { eventId: string; ticketTypeId?: string } = { eventId };
-      if (ticketTypes.length > 0 && selectedTypeId) {
-        body.ticketTypeId = selectedTypeId;
-      }
+      if (ticketTypes.length > 0 && selectedTypeId) body.ticketTypeId = selectedTypeId;
 
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error ?? "Impossible de réserver.");
-        return;
-      }
+      if (!res.ok) { setError(data.error ?? "Impossible de réserver."); return; }
 
       if (data.ticket.status === "CONFIRMED") {
         setSuccess(data.message);
         router.refresh();
       } else {
-        setNewTicket({
-          id: data.ticket.id,
-          code: data.ticket.qrCode,
-          price: data.ticket.price ?? effectivePrice,
-        });
+        // DRAFT ou PENDING
+        setNewTicket({ id: data.ticket.id, code: data.ticket.qrCode, price: data.ticket.price ?? effectivePrice });
         router.refresh();
       }
-    } catch {
-      setError("Erreur réseau. Réessayez.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Erreur réseau. Réessayez."); }
+    finally { setLoading(false); }
   };
 
   const handleWaitlist = async () => {
@@ -106,38 +91,37 @@ export function EventBookingActions({
       if (!res.ok) { setError(data.error ?? "Impossible de rejoindre la liste d'attente."); return; }
       setSuccess(data.message);
       router.refresh();
-    } catch {
-      setError("Erreur réseau. Réessayez.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Erreur réseau. Réessayez."); }
+    finally { setLoading(false); }
+  };
+
+  /* Callback quand l'étudiant annule depuis PaymentInstructions */
+  const handleCancelled = () => {
+    setNewTicket(null);
+    router.refresh();
   };
 
   /* ── Inscriptions closes ─────────────────────────────────── */
   if (deadlinePassed) {
-    return (
-      <button className="btn btn-secondary" style={{ width: "100%" }} disabled>
-        Inscriptions closes
-      </button>
-    );
+    return <button className="btn btn-secondary" style={{ width: "100%" }} disabled>Inscriptions closes</button>;
   }
 
   /* ── Billet existant ─────────────────────────────────────── */
   if (existingTicketStatus) {
+    // DRAFT ou PENDING_REVIEW avec billet existant → instructions de paiement
     if (
-      (existingTicketStatus === "PENDING" || existingTicketStatus === "PENDING_REVIEW") &&
+      (existingTicketStatus === "DRAFT" || existingTicketStatus === "PENDING" || existingTicketStatus === "PENDING_REVIEW") &&
       !effectiveIsFree && existingTicketId && existingTicketCode
     ) {
       return (
         <PaymentInstructions
           ticketId={existingTicketId}
           ticketCode={existingTicketCode}
-          eventTitle={existingTicketTypeName
-            ? `${eventTitle} — ${existingTicketTypeName}`
-            : eventTitle}
+          eventTitle={existingTicketTypeName ? `${eventTitle} — ${existingTicketTypeName}` : eventTitle}
           amount={effectivePrice}
           userName={userName}
           alreadyNotified={existingTicketStatus === "PENDING_REVIEW"}
+          onCancelled={handleCancelled}
         />
       );
     }
@@ -150,20 +134,14 @@ export function EventBookingActions({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <div style={{
-          display: "flex", alignItems: "center", gap: "8px",
-          padding: "12px", borderRadius: "8px",
-          background: existingTicketStatus === "PENDING_REVIEW"
-            ? "rgba(217,119,6,0.1)" : "rgba(22,163,74,0.1)",
-          color: existingTicketStatus === "PENDING_REVIEW"
-            ? "var(--color-warning)" : "var(--color-success)",
+          display: "flex", alignItems: "center", gap: "8px", padding: "12px", borderRadius: "8px",
+          background: existingTicketStatus === "PENDING_REVIEW" ? "rgba(217,119,6,0.1)" : "rgba(22,163,74,0.1)",
+          color: existingTicketStatus === "PENDING_REVIEW" ? "var(--color-warning)" : "var(--color-success)",
           fontSize: "0.9rem", fontWeight: 600,
         }}>
-          <CheckCircle2 size={18} />
-          {label}
+          <CheckCircle2 size={18} /> {label}
           {existingTicketTypeName && (
-            <span style={{ fontWeight: 400, marginLeft: 4, fontSize: "0.82rem" }}>
-              — {existingTicketTypeName}
-            </span>
+            <span style={{ fontWeight: 400, marginLeft: 4, fontSize: "0.82rem" }}>— {existingTicketTypeName}</span>
           )}
         </div>
         <Link href="/profile/tickets" className="btn btn-primary" style={{ width: "100%" }}>
@@ -182,6 +160,7 @@ export function EventBookingActions({
         eventTitle={selectedType ? `${eventTitle} — ${selectedType.name}` : eventTitle}
         amount={newTicket.price}
         userName={userName}
+        onCancelled={handleCancelled}
       />
     );
   }
@@ -201,17 +180,14 @@ export function EventBookingActions({
 
   /* ── Complet ─────────────────────────────────────────────── */
   if (isSoldOut) {
-    if (!isLoggedIn) return (
-      <Link href={loginHref} className="btn btn-secondary" style={{ width: "100%" }}>
-        Rejoindre la liste d&apos;attente
-      </Link>
-    );
+    if (!isLoggedIn) {
+      return <Link href={loginHref} className="btn btn-secondary" style={{ width: "100%" }}>Rejoindre la liste d&apos;attente</Link>;
+    }
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {error && <p style={{ color: "var(--color-error)", fontSize: "0.85rem" }}>{error}</p>}
         {success && <p style={{ color: "var(--color-success)", fontSize: "0.85rem" }}>{success}</p>}
-        <button className="btn btn-secondary" style={{ width: "100%" }}
-          onClick={handleWaitlist} disabled={loading}>
+        <button className="btn btn-secondary" style={{ width: "100%" }} onClick={handleWaitlist} disabled={loading}>
           {loading && <Loader2 size={16} />} Rejoindre la liste d&apos;attente
         </button>
       </div>
@@ -225,15 +201,9 @@ export function EventBookingActions({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {ticketTypes.length > 0 && (
-          <TicketTypeSelector
-            types={ticketTypes}
-            selectedId={selectedTypeId}
-            onChange={setSelectedTypeId}
-          />
+          <TicketTypeSelector types={ticketTypes} selectedId={selectedTypeId} onChange={setSelectedTypeId} />
         )}
-        <Link href={loginHref} className="btn btn-primary" style={{ width: "100%" }}>
-          Réserver ma place
-        </Link>
+        <Link href={loginHref} className="btn btn-primary" style={{ width: "100%" }}>Réserver ma place</Link>
       </div>
     );
   }
@@ -244,21 +214,13 @@ export function EventBookingActions({
       {error && <p style={{ color: "var(--color-error)", fontSize: "0.85rem" }}>{error}</p>}
       {success && <p style={{ color: "var(--color-success)", fontSize: "0.85rem" }}>{success}</p>}
 
-      {/* Sélecteur de type */}
       {ticketTypes.length > 0 && (
-        <TicketTypeSelector
-          types={ticketTypes}
-          selectedId={selectedTypeId}
-          onChange={setSelectedTypeId}
-        />
+        <TicketTypeSelector types={ticketTypes} selectedId={selectedTypeId} onChange={setSelectedTypeId} />
       )}
 
-      <button className="btn btn-primary" style={{ width: "100%" }}
-        onClick={handleReserve} disabled={loading}>
+      <button className="btn btn-primary" style={{ width: "100%" }} onClick={handleReserve} disabled={loading}>
         {loading && <Loader2 size={16} />}
-        {effectiveIsFree
-          ? "Réserver ma place"
-          : `Réserver — ${effectivePrice.toLocaleString("fr-FR")} FCFA`}
+        {effectiveIsFree ? "Réserver ma place" : `Réserver — ${effectivePrice.toLocaleString("fr-FR")} FCFA`}
       </button>
 
       {!effectiveIsFree && (
@@ -270,53 +232,33 @@ export function EventBookingActions({
   );
 }
 
-/* ─── Composant sélecteur de type ────────────────────────────── */
-function TicketTypeSelector({
-  types, selectedId, onChange,
-}: {
-  types: TicketType[];
-  selectedId: string;
-  onChange: (id: string) => void;
+/* ─── Sélecteur de type de billet ───────────────────────────── */
+function TicketTypeSelector({ types, selectedId, onChange }: {
+  types: TicketType[]; selectedId: string; onChange: (id: string) => void;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <label style={{
-        fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)",
-        display: "flex", alignItems: "center", gap: "5px",
-      }}>
-        <Tag size={13} /> Type de billet
+      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+        Type de billet
       </label>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {types.map((type) => (
-          <label
-            key={type.id}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px",
-              border: `1.5px solid ${selectedId === type.id ? "var(--color-accent)" : "var(--border-medium)"}`,
-              borderRadius: "var(--radius-md)",
-              background: selectedId === type.id ? "var(--color-accent-50)" : "var(--bg-surface)",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
+          <label key={type.id} style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px",
+            border: `1.5px solid ${selectedId === type.id ? "var(--color-accent)" : "var(--border-medium)"}`,
+            borderRadius: "var(--radius-md)",
+            background: selectedId === type.id ? "var(--color-accent-50)" : "var(--bg-surface)",
+            cursor: "pointer", transition: "all 0.15s",
+          }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <input
-                type="radio"
-                name="ticketType"
-                value={type.id}
-                checked={selectedId === type.id}
-                onChange={() => onChange(type.id)}
-                style={{ accentColor: "var(--color-accent)" }}
-              />
+              <input type="radio" name="ticketType" value={type.id}
+                checked={selectedId === type.id} onChange={() => onChange(type.id)}
+                style={{ accentColor: "var(--color-accent)" }} />
               <div>
-                <div style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)" }}>
-                  {type.name}
-                </div>
+                <div style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)" }}>{type.name}</div>
                 {type.description && (
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    {type.description}
-                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{type.description}</div>
                 )}
               </div>
             </div>
