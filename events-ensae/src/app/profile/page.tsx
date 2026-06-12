@@ -124,7 +124,7 @@ export default async function ProfilePage() {
               </div>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoCardLabel}>Promotion</div>
+              <div className={styles.infoCardLabel}>Classe</div>
               <div className={styles.infoCardValue}>
                 {user.promotion ?? <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>Non renseignée</span>}
               </div>

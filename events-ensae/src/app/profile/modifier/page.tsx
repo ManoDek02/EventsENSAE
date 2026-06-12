@@ -173,7 +173,7 @@ export default function ModifierProfilePage() {
 
                                         <div className="form-group">
                                             <label className="form-label" htmlFor="promotion">
-                                                Promotion
+                                                Classe
                                             </label>
                                             <select
                                                 id="promotion"

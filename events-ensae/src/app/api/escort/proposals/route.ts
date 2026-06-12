@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const { requestId, message, phoneNumber } = body as {
       requestId: string;
       message: string;
-      phoneNumber?: string;   // ← NOUVEAU
+      phoneNumber?: number;   // ← NOUVEAU
     };
 
     if (!requestId) throw badRequest("requestId est requis.");
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         requestId,
         proposerId: userId,
         message: message.trim(),
-        phoneNumber: phoneNumber?.trim() || null,   // ← NOUVEAU
+        phoneNumber: phoneNumber ? String(phoneNumber) : null,
         status: "PENDING",
       },
     });
