@@ -13,7 +13,7 @@ const FILIERES = [
   "Autre",
 ];
 
-const PROMOTIONS = ["1ère année", "2ème année", "3ème année", "Autre"];
+const PROMOTIONS = ["Isep 1", "Isep 2", "AS 1", "AS 2", "AS 3", "ISE Cycle long", "ISE Math", "ISE Eco", "ISE 2", "ISE 3", "Autre"];
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -188,7 +188,7 @@ export default function RegisterPage() {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="promotion">Niveau</label>
+              <label className="form-label" htmlFor="promotion">Classe</label>
               <select
                 id="promotion"
                 name="promotion"
