@@ -1,14 +1,9 @@
 // src/app/api/admin/musiques/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/auth-admin";
 
-async function requireAdminApi() {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    return session;
-}
 
 /* GET /api/admin/musiques?eventId=&status=pending|approved|all */
 export async function GET(req: NextRequest) {

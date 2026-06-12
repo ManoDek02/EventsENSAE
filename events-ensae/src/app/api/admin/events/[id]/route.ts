@@ -3,14 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden, notFound, badRequest } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/auth-admin";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-async function requireAdminApi() {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    return session;
-}
 
 /* GET /api/admin/events/[id] — détail complet */
 export async function GET(_req: NextRequest, { params }: RouteParams) {

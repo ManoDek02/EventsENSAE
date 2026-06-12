@@ -17,7 +17,7 @@ model User {
   image         String?
   password      String?
   role          Role      @default(STUDENT)
-  permissions  String[]  @default([])
+  permissions   String[]  @default([])
   filiere       String?
   promotion     String?
   createdAt     DateTime  @default(now())
@@ -148,6 +148,10 @@ model Ticket {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([eventId, status])
 }
 
 enum TicketStatus {
@@ -170,6 +174,7 @@ model WaitlistEntry {
   createdAt DateTime @default(now())
 
   @@unique([userId, eventId])
+  @@index([eventId])
 }
 
 // ─── Musique ───────────────────────────────────────────────────
@@ -190,6 +195,8 @@ model MusicSuggestion {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([eventId])
+  @@index([userId])
 }
 
 enum MusicPlatform {
@@ -248,6 +255,9 @@ model EscortRequest {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([eventId])
+  @@index([requesterId])
+  @@index([status])
 }
 
 model EscortProposal {
@@ -265,5 +275,7 @@ model EscortProposal {
   updatedAt DateTime @updatedAt
 
   @@unique([requestId, proposerId])
+  @@index([requestId])
+  @@index([proposerId])
 }
 

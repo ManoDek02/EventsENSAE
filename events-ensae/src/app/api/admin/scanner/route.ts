@@ -2,16 +2,10 @@
 // Mise à jour : inclut ticketType dans toutes les réponses
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
 import { formatEventDate, formatEventTime } from "@/lib/events";
-
-async function requireAdminApi() {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    return session;
-}
+import { requireAdminApi } from "@/lib/auth-admin";
 
 function extractQrCode(raw: string): string {
     const trimmed = raw.trim();

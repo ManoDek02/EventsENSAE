@@ -171,7 +171,7 @@ export async function sendMatchConfirmedEmail({
       Nous vous souhaitons une soirée mémorable au Gala ENSAE.
     </p>
     <div class="btn-wrap">
-      <a href="/profile/tickets" class="btn-single">Voir mon billet</a>
+      <a href="${process.env.NEXTAUTH_URL ?? ''}/profile/tickets" class="btn-single">Voir mon billet</a>
     </div>
     <div class="divider"></div>
     <p class="note">Cette mise en relation est confidentielle.<br/>Profitez de chaque instant ✨</p>
@@ -203,7 +203,7 @@ export async function sendProposalRejectedEmail({
       Le Gala ENSAE réserve bien des surprises… 🌹
     </p>
     <div class="btn-wrap">
-      <a href="/events" class="btn-single">Voir les autres demandes</a>
+      <a href="${process.env.NEXTAUTH_URL ?? ''}/events" class="btn-single">Voir les autres demandes</a>
     </div>
   `;
 
