@@ -21,7 +21,13 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
         const ticketTypes = await prisma.ticketType.findMany({
             where: { eventId },
             orderBy: { createdAt: "asc" },
-            include: { _count: { select: { tickets: { where: { status: { in: ["CONFIRMED", "PENDING_REVIEW", "PENDING"] } } } } } },
+            include: {
+                _count: {
+                    select: {
+                        tickets: { where: { status: { in: ["CONFIRMED", "PENDING_REVIEW", "PENDING"] } } },
+                    },
+                },
+            },
         });
 
         return NextResponse.json({ ticketTypes });
@@ -30,7 +36,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     }
 }
 
-/* POST /api/admin/events/[id]/ticket-types — créer un type */
+/* POST /api/admin/events/[id]/ticket-types */
 export async function POST(req: NextRequest, { params }: RouteParams) {
     try {
         await requireAdminApi();
@@ -40,8 +46,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         if (!event) throw notFound("Événement introuvable.");
 
         const body = await req.json();
-        const { name, description, price } = body as {
-            name: string; description?: string; price: number;
+        const { name, description, price, seats } = body as {
+            name: string; description?: string; price: number; seats?: number;
         };
 
         if (!name?.trim()) {
@@ -54,6 +60,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
                 name: name.trim(),
                 description: description?.trim() || null,
                 price: Number(price) || 0,
+                seats: Number(seats) || 1,
             },
         });
 
@@ -63,7 +70,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-/* PUT /api/admin/events/[id]/ticket-types — remplacer tous les types (save en lot) */
+/* PUT /api/admin/events/[id]/ticket-types — remplacer tous les types */
 export async function PUT(req: NextRequest, { params }: RouteParams) {
     try {
         await requireAdminApi();
@@ -74,14 +81,16 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
         const body = await req.json();
         const { ticketTypes } = body as {
-            ticketTypes: Array<{ id?: string; name: string; description?: string; price: number }>;
+            ticketTypes: Array<{
+                id?: string; name: string;
+                description?: string; price: number; seats?: number;
+            }>;
         };
 
         if (!Array.isArray(ticketTypes)) {
             return NextResponse.json({ error: "ticketTypes doit être un tableau." }, { status: 400 });
         }
 
-        // Supprimer les types existants sans billets
         const existingIds = ticketTypes.filter(t => t.id).map(t => t.id as string);
         await prisma.ticketType.deleteMany({
             where: {
@@ -91,7 +100,6 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
             },
         });
 
-        // Upsert chaque type
         const results = await Promise.all(
             ticketTypes.map(async (t) => {
                 if (t.id) {
@@ -101,6 +109,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
                             name: t.name.trim(),
                             description: t.description?.trim() || null,
                             price: Number(t.price) || 0,
+                            seats: Number(t.seats) || 1,
                         },
                     });
                 }
@@ -110,6 +119,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
                         name: t.name.trim(),
                         description: t.description?.trim() || null,
                         price: Number(t.price) || 0,
+                        seats: Number(t.seats) || 1,
                     },
                 });
             })
@@ -121,7 +131,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-/* DELETE /api/admin/events/[id]/ticket-types/[typeId] — via query param */
+/* DELETE /api/admin/events/[id]/ticket-types?typeId= */
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
     try {
         await requireAdminApi();

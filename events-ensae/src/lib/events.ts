@@ -14,6 +14,7 @@ export type EventWithCount = {
   published: boolean;
   tags: string[];
   _count: { tickets: number };
+  occupiedSeats?: number; // ← places réelles occupées (seats inclus)
 };
 
 export const EVENT_CATEGORY_LABELS: Record<string, string> = {
@@ -32,13 +33,55 @@ const CONFIRMED_TICKETS_COUNT = {
   _count: { select: { tickets: { where: { status: "CONFIRMED" as const } } } },
 } as const;
 
+/* ─── Calcule les places réellement occupées (sum des seats) ── */
+export async function getOccupiedSeats(eventId: string): Promise<number> {
+  const tickets = await prisma.ticket.findMany({
+    where: {
+      eventId,
+      status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] },
+    },
+    include: { ticketType: { select: { seats: true } } },
+  });
+
+  return tickets.reduce((sum, t) => sum + (t.ticketType?.seats ?? 1), 0);
+}
+
+/* ─── Version batch pour plusieurs événements ──────────────── */
+export async function getOccupiedSeatsBatch(
+  eventIds: string[]
+): Promise<Record<string, number>> {
+  if (eventIds.length === 0) return {};
+
+  const tickets = await prisma.ticket.findMany({
+    where: {
+      eventId: { in: eventIds },
+      status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] },
+    },
+    include: { ticketType: { select: { seats: true } } },
+  });
+
+  const result: Record<string, number> = {};
+  for (const id of eventIds) result[id] = 0;
+  for (const t of tickets) {
+    result[t.eventId] = (result[t.eventId] ?? 0) + (t.ticketType?.seats ?? 1);
+  }
+  return result;
+}
+
 export async function getPublishedEvents(): Promise<EventWithCount[]> {
   try {
-    return await prisma.event.findMany({
+    const events = await prisma.event.findMany({
       where: { published: true, date: { gte: new Date() } },
       orderBy: { date: "asc" },
       include: CONFIRMED_TICKETS_COUNT,
     });
+
+    if (events.length === 0) return [];
+
+    // Enrichir avec les places réelles en une seule requête batch
+    const occupiedMap = await getOccupiedSeatsBatch(events.map((e) => e.id));
+
+    return events.map((e) => ({ ...e, occupiedSeats: occupiedMap[e.id] ?? 0 }));
   } catch {
     return [];
   }
@@ -53,7 +96,8 @@ export async function getEventById(id: string): Promise<EventWithCount | null> {
 
     if (!event?.published) return null;
 
-    return event;
+    const occupiedSeats = await getOccupiedSeats(id);
+    return { ...event, occupiedSeats };
   } catch {
     return null;
   }
@@ -83,8 +127,10 @@ export function filterEvents(
   });
 }
 
+/* ─── getRemainingSeats — utilise occupiedSeats si disponible ── */
 export function getRemainingSeats(event: EventWithCount) {
-  return Math.max(event.capacity - event._count.tickets, 0);
+  const occupied = event.occupiedSeats ?? event._count.tickets;
+  return Math.max(event.capacity - occupied, 0);
 }
 
 export function isEventSoldOut(event: EventWithCount) {

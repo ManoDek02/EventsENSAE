@@ -1,4 +1,5 @@
 // src/app/api/tickets/route.ts
+// Mise à jour : tient compte du champ seats pour les billets Couple
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
@@ -9,7 +10,6 @@ import { buildTicketQrContent, generateQrBuffer } from "@/lib/qr";
 import { sendTicketEmail } from "@/lib/email";
 import { formatEventDate, formatEventTime } from "@/lib/events";
 
-/* GET /api/tickets — liste les billets de l'utilisateur */
 export async function GET() {
   try {
     const session = await requireApiAuth();
@@ -29,7 +29,7 @@ export async function GET() {
         eventLocation: ticket.event.location,
         status: ticket.status,
         ticketType: ticket.ticketType
-          ? { id: ticket.ticketType.id, name: ticket.ticketType.name }
+          ? { id: ticket.ticketType.id, name: ticket.ticketType.name, price: ticket.ticketType.price, seats: ticket.ticketType.seats }
           : null,
         qrCode:
           ticket.status === "CONFIRMED" || ticket.status === "SCANNED"
@@ -43,7 +43,6 @@ export async function GET() {
   }
 }
 
-/* POST /api/tickets — créer un billet */
 export async function POST(req: NextRequest) {
   try {
     const session = await requireApiAuth();
@@ -56,10 +55,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!eventId) {
-      return NextResponse.json(
-        { error: "eventId est requis.", code: "MISSING_EVENT_ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "eventId est requis." }, { status: 400 });
     }
 
     const event = await prisma.event.findUnique({
@@ -80,30 +76,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Événement introuvable." }, { status: 404 });
     }
 
-    // Vérifier deadline
     if (event.deadline && new Date(event.deadline) < new Date()) {
       return NextResponse.json({ error: "Les inscriptions sont closes." }, { status: 400 });
     }
 
-    // Vérifier capacité
-    if (event._count.tickets >= event.capacity) {
-      return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
-    }
-
-    // Vérifier billet existant
-    const existing = await prisma.ticket.findFirst({
-      where: { userId, eventId, status: { not: "CANCELLED" } },
+    /* ── Calculer les places réellement occupées (en tenant compte des seats) ── */
+    const ticketsWithSeats = await prisma.ticket.findMany({
+      where: {
+        eventId,
+        status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] },
+      },
+      include: { ticketType: { select: { seats: true } } },
     });
-    if (existing) {
-      return NextResponse.json(
-        { error: "Vous avez déjà réservé pour cet événement." },
-        { status: 400 }
-      );
-    }
 
-    // Résoudre le prix selon le type de billet
+    const occupiedSeats = ticketsWithSeats.reduce((sum, t) => {
+      return sum + (t.ticketType?.seats ?? 1);
+    }, 0);
+
+    /* ── Résoudre le type de billet ──────────────────────────── */
     let resolvedPrice = event.price;
     let resolvedTicketTypeId: string | null = null;
+    let requiredSeats = 1;
 
     if (event.ticketTypes.length > 0) {
       if (!ticketTypeId) {
@@ -118,6 +111,33 @@ export async function POST(req: NextRequest) {
       }
       resolvedPrice = ticketType.price;
       resolvedTicketTypeId = ticketType.id;
+      requiredSeats = ticketType.seats ?? 1;
+    }
+
+    /* ── Vérifier les places disponibles ─────────────────────── */
+    if (occupiedSeats + requiredSeats > event.capacity) {
+      const remaining = event.capacity - occupiedSeats;
+      if (remaining <= 0) {
+        return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
+      }
+      if (requiredSeats === 2) {
+        return NextResponse.json(
+          { error: `Il ne reste que ${remaining} place${remaining > 1 ? "s" : ""} — insuffisant pour un billet Couple (2 places requises).` },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
+    }
+
+    /* ── Vérifier billet existant ────────────────────────────── */
+    const existing = await prisma.ticket.findFirst({
+      where: { userId, eventId, status: { not: "CANCELLED" } },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Vous avez déjà réservé pour cet événement." },
+        { status: 400 }
+      );
     }
 
     const qrCode = randomUUID();
@@ -131,13 +151,9 @@ export async function POST(req: NextRequest) {
         qrCode,
         status: isFree ? "CONFIRMED" : "PENDING",
       },
-      include: {
-        event: true,
-        ticketType: true,
-      },
+      include: { event: true, ticketType: true },
     });
 
-    // Envoyer email QR si gratuit
     if (isFree && session.user.email) {
       try {
         const qrContent = buildTicketQrContent(qrCode);
@@ -166,6 +182,7 @@ export async function POST(req: NextRequest) {
               id: ticket.ticketType.id,
               name: ticket.ticketType.name,
               price: ticket.ticketType.price,
+              seats: ticket.ticketType.seats,
             }
             : null,
           price: resolvedPrice,
