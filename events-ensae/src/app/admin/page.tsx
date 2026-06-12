@@ -11,11 +11,6 @@ import { prisma } from "@/lib/prisma";
 import { AdminNav } from "./AdminNav";
 import styles from "./admin.module.css";
 import appStyles from "../app-page.module.css";
-import { requireApiAuth } from "@/lib/auth-api";
-import { hasPermission, Permission } from "@/lib/permissions";
-import { forbidden } from "@/lib/api-errors";
-import error from "../error";
-
 
 export const metadata = {
   title: "Administration | ENSAE Events",
@@ -28,24 +23,10 @@ export default async function AdminPage({
 }) {
   await requireAdmin();
   const { error } = await searchParams;
-  async function requirePermissionApi(permission: Permission) {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { permissions: true },
-    });
-    
-    if (!user || !hasPermission(user.permissions, permission)) {
-      throw forbidden("Permission insuffisante.");
-    }
-    return session;
-}
 
   const [
-    eventCount, ticketConfirmed, ticketPending, userCount,
-    upcomingCount, pendingMusicCount, pendingReviewCount,
+    eventCount, ticketConfirmed, ticketPending, pendingReviewCount,
+    userCount, upcomingCount, pendingMusicCount,
   ] = await Promise.all([
     prisma.event.count(),
     prisma.ticket.count({ where: { status: "CONFIRMED" } }),
