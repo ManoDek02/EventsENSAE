@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import {
-  CheckCircle2, AlertTriangle, Copy, Smartphone, Clock,
+  CheckCircle2, AlertTriangle, Copy, Smartphone, Clock, X,
 } from "lucide-react";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import styles from "./PaymentInstructions.module.css";
@@ -15,21 +15,19 @@ type Props = {
   amount: number;
   userName: string;
   alreadyNotified?: boolean;
+  onCancelled?: () => void; // callback après annulation
 };
 
 const WAVE_NUMBER = process.env.NEXT_PUBLIC_PAYMENT_PHONE ?? "776404406";
 const OM_NUMBER = process.env.NEXT_PUBLIC_PAYMENT_PHONE ?? "776404406";
 
 export function PaymentInstructions({
-  ticketId,
-  ticketCode,
-  eventTitle,
-  amount,
-  userName,
-  alreadyNotified = false,
+  ticketId, ticketCode, eventTitle, amount, userName,
+  alreadyNotified = false, onCancelled,
 }: Props) {
   const [notified, setNotified] = useState(alreadyNotified);
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [paymentProofUrl, setPaymentProofUrl] = useState("");
@@ -45,12 +43,10 @@ export function PaymentInstructions({
 
   const handleNotify = async () => {
     if (!paymentProofUrl) {
-      setError("Veuillez uploader une capture d'écran de votre paiement avant de confirmer.");
+      setError("Veuillez uploader une preuve de paiement avant de confirmer.");
       return;
     }
-
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       const res = await fetch(`/api/tickets/${ticketId}/notify-payment`, {
         method: "POST",
@@ -58,16 +54,22 @@ export function PaymentInstructions({
         body: JSON.stringify({ paymentProofUrl }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Une erreur est survenue.");
-      } else {
-        setNotified(true);
-      }
-    } catch {
-      setError("Erreur réseau. Réessayez.");
-    } finally {
-      setLoading(false);
-    }
+      if (!res.ok) { setError(data.error ?? "Une erreur est survenue."); }
+      else { setNotified(true); }
+    } catch { setError("Erreur réseau. Réessayez."); }
+    finally { setLoading(false); }
+  };
+
+  const handleCancel = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir annuler votre réservation ?")) return;
+    setCancelling(true); setError("");
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? "Impossible d'annuler."); }
+      else { onCancelled?.(); }
+    } catch { setError("Erreur réseau. Réessayez."); }
+    finally { setCancelling(false); }
   };
 
   return (
@@ -95,11 +97,8 @@ export function PaymentInstructions({
           <div className={styles.stepContent}>
             <div className={styles.stepTitle}>Choisissez votre moyen de paiement</div>
             <div className={styles.paymentMethods}>
-              {/* Wave */}
               <div className={styles.method}>
-                <div className={styles.methodBadge} style={{ background: "#1B9CC4", color: "#fff" }}>
-                  Wave
-                </div>
+                <div className={styles.methodBadge} style={{ background: "#1B9CC4", color: "#fff" }}>Wave</div>
                 <div className={styles.methodNumber}>
                   <span>{WAVE_NUMBER}</span>
                   <button className={styles.copyBtn} onClick={() => copy(WAVE_NUMBER, "wave")} title="Copier">
@@ -107,11 +106,8 @@ export function PaymentInstructions({
                   </button>
                 </div>
               </div>
-              {/* Orange Money */}
               <div className={styles.method}>
-                <div className={styles.methodBadge} style={{ background: "#FF6600", color: "#fff" }}>
-                  Orange Money
-                </div>
+                <div className={styles.methodBadge} style={{ background: "#FF6600", color: "#fff" }}>Orange Money</div>
                 <div className={styles.methodNumber}>
                   <span>{OM_NUMBER}</span>
                   <button className={styles.copyBtn} onClick={() => copy(OM_NUMBER, "om")} title="Copier">
@@ -126,12 +122,10 @@ export function PaymentInstructions({
         <li className={styles.step}>
           <div className={styles.stepNumber}>2</div>
           <div className={styles.stepContent}>
-            <div className={styles.stepTitle}>
-              Indiquez cette référence dans le message
-            </div>
+            <div className={styles.stepTitle}>Indiquez cette référence dans le message</div>
             <div className={styles.reference}>
               <code className={styles.referenceCode}>{reference}</code>
-              <button className={styles.copyBtn} onClick={() => copy(reference, "ref")} title="Copier la référence">
+              <button className={styles.copyBtn} onClick={() => copy(reference, "ref")} title="Copier">
                 {copied === "ref" ? <CheckCircle2 size={13} /> : <Copy size={13} />}
               </button>
             </div>
@@ -144,12 +138,9 @@ export function PaymentInstructions({
         <li className={styles.step}>
           <div className={styles.stepNumber}>3</div>
           <div className={styles.stepContent}>
-            <div className={styles.stepTitle}>
-              Prenez une capture d&apos;écran de la confirmation
-            </div>
+            <div className={styles.stepTitle}>Prenez une capture d&apos;écran de la confirmation</div>
             <p className={styles.stepDesc}>
-              Après le virement, prenez une capture d&apos;écran de la confirmation Wave ou Orange Money
-              et uploadez-la ci-dessous.
+              Après le virement, prenez une capture d&apos;écran et uploadez-la ci-dessous.
             </p>
           </div>
         </li>
@@ -161,16 +152,11 @@ export function PaymentInstructions({
               Uploadez la preuve de paiement <span style={{ color: "var(--color-error)" }}>*</span>
             </div>
             <div style={{ marginTop: 10 }}>
-              <ImageUpload
-                value={paymentProofUrl}
-                onChange={setPaymentProofUrl}
-                label=""
-              />
+              <ImageUpload value={paymentProofUrl} onChange={setPaymentProofUrl} label="" />
             </div>
             {!paymentProofUrl && (
               <p style={{ fontSize: "0.75rem", color: "var(--color-warning)", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                <AlertTriangle size={12} />
-                Obligatoire avant de confirmer
+                <AlertTriangle size={12} /> Obligatoire avant de confirmer
               </p>
             )}
           </div>
@@ -184,31 +170,49 @@ export function PaymentInstructions({
         </div>
       )}
 
-      {/* Action */}
+      {/* Actions */}
       {notified ? (
         <div className={styles.confirmed}>
           <CheckCircle2 size={18} />
           <div>
             <div className={styles.confirmedTitle}>Paiement signalé</div>
             <div className={styles.confirmedSub}>
-              L&apos;admin a reçu votre preuve de paiement par email et va confirmer votre billet.
+              L&apos;admin a reçu votre preuve et va confirmer votre billet sous peu.
             </div>
           </div>
         </div>
       ) : (
-        <button
-          className={`btn btn-primary ${styles.notifyBtn}`}
-          onClick={handleNotify}
-          disabled={loading || !paymentProofUrl}
-          style={{ opacity: !paymentProofUrl ? 0.6 : 1 }}
-        >
-          {loading ? (
-            <span className={styles.spinner} />
-          ) : (
-            <CheckCircle2 size={16} />
-          )}
-          {loading ? "Envoi…" : "J'ai effectué le paiement"}
-        </button>
+        <>
+          <button
+            className={`btn btn-primary ${styles.notifyBtn}`}
+            onClick={handleNotify}
+            disabled={loading || !paymentProofUrl}
+            style={{ opacity: !paymentProofUrl ? 0.6 : 1 }}
+          >
+            {loading ? <span className={styles.spinner} /> : <CheckCircle2 size={16} />}
+            {loading ? "Envoi…" : "J'ai effectué le paiement"}
+          </button>
+
+          {/* Bouton annuler — visible tant que pas encore notifié */}
+          <button
+            className="btn btn-ghost"
+            onClick={handleCancel}
+            disabled={cancelling}
+            style={{
+              width: "100%",
+              marginTop: 8,
+              color: "var(--color-error)",
+              fontSize: "0.8125rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+            }}
+          >
+            {cancelling ? <span className={styles.spinner} style={{ borderColor: "rgba(220,38,38,0.3)", borderTopColor: "var(--color-error)" }} /> : <X size={14} />}
+            {cancelling ? "Annulation…" : "Annuler ma réservation"}
+          </button>
+        </>
       )}
 
       {/* Note délai */}
