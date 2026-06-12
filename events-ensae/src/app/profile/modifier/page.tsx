@@ -14,12 +14,7 @@ const FILIERES = [
     "Autre",
 ];
 
-const PROMOTIONS = [
-    "1ère année",
-    "2ème année",
-    "3ème année",
-    "Autre",
-];
+const PROMOTIONS = ["Isep 1", "Isep 2", "AS 1", "AS 2", "AS 3", "ISE 1 Cycle long", "ISE Math", "ISE Eco", "ISE 2", "ISE 3", "Autre"];
 
 export default function ModifierProfilePage() {
     const router = useRouter();

@@ -12,7 +12,7 @@ const FILIERES = [
 ];
 
 const PROMOTIONS = [
-    "ISEP 1", "ISEP 2", "AS 1", "AS 2", "AS 3", "ISE Cycle long", "ISE Math", "ISE Eco", "ISE 2", "ISE 3", "Autre"
+    "ISEP 1", "ISEP 2", "AS 1", "AS 2", "AS 3", "ISE 1 Cycle long", "ISE Math", "ISE Eco", "ISE 2", "ISE 3", "Autre"
 ];
 
 /* GET /api/profile — retourne le profil courant */
