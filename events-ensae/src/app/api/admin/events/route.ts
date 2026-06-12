@@ -1,14 +1,8 @@
 // src/app/api/admin/events/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden, badRequest } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
-
-async function requireAdminApi() {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    return session;
-}
+import { requireAdminApi } from "@/lib/auth-admin";
 
 /* GET /api/admin/events — liste tous les événements (publiés ou non) */
 export async function GET() {

@@ -3,17 +3,11 @@
 // Envoie la playlist finale par email à tous les participants confirmés.
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth-api";
 import { errorResponse, forbidden, notFound, badRequest } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
 import { sendPlaylistAnnouncementEmail } from "@/lib/email";
 import { formatEventDate, formatEventTime } from "@/lib/events";
-
-async function requireAdminApi() {
-    const session = await requireApiAuth();
-    if (session.user.role !== "ADMIN") throw forbidden();
-    return session;
-}
+import { requireAdminApi } from "@/lib/auth-admin";
 
 export async function POST(req: NextRequest) {
     try {
