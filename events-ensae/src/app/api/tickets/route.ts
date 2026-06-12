@@ -1,5 +1,5 @@
 // src/app/api/tickets/route.ts
-// Mise à jour : tient compte du champ seats pour les billets Couple
+// Race condition corrigée — vérification + création dans une transaction Prisma
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
@@ -29,7 +29,12 @@ export async function GET() {
         eventLocation: ticket.event.location,
         status: ticket.status,
         ticketType: ticket.ticketType
-          ? { id: ticket.ticketType.id, name: ticket.ticketType.name, price: ticket.ticketType.price, seats: ticket.ticketType.seats }
+          ? {
+            id: ticket.ticketType.id,
+            name: ticket.ticketType.name,
+            price: ticket.ticketType.price,
+            seats: ticket.ticketType.seats,
+          }
           : null,
         qrCode:
           ticket.status === "CONFIRMED" || ticket.status === "SCANNED"
@@ -58,18 +63,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "eventId est requis." }, { status: 400 });
     }
 
+    /* ── Validation préliminaire hors transaction ─────────────
+       (légère, sans verrou — juste pour retourner des erreurs
+       claires avant d'entrer dans la transaction)
+    ─────────────────────────────────────────────────────────── */
     const event = await prisma.event.findUnique({
       where: { id: eventId, published: true },
-      include: {
-        _count: {
-          select: {
-            tickets: {
-              where: { status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] } },
-            },
-          },
-        },
-        ticketTypes: true,
-      },
+      include: { ticketTypes: true },
     });
 
     if (!event) {
@@ -80,20 +80,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Les inscriptions sont closes." }, { status: 400 });
     }
 
-    /* ── Calculer les places réellement occupées (en tenant compte des seats) ── */
-    const ticketsWithSeats = await prisma.ticket.findMany({
-      where: {
-        eventId,
-        status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] },
-      },
-      include: { ticketType: { select: { seats: true } } },
-    });
-
-    const occupiedSeats = ticketsWithSeats.reduce((sum, t) => {
-      return sum + (t.ticketType?.seats ?? 1);
-    }, 0);
-
-    /* ── Résoudre le type de billet ──────────────────────────── */
+    /* ── Résoudre le type de billet ───────────────────────────
+       (hors transaction car pas d'écriture)
+    ─────────────────────────────────────────────────────────── */
     let resolvedPrice = event.price;
     let resolvedTicketTypeId: string | null = null;
     let requiredSeats = 1;
@@ -114,49 +103,72 @@ export async function POST(req: NextRequest) {
       requiredSeats = ticketType.seats ?? 1;
     }
 
-    /* ── Vérifier les places disponibles ─────────────────────── */
-    if (occupiedSeats + requiredSeats > event.capacity) {
-      const remaining = event.capacity - occupiedSeats;
-      if (remaining <= 0) {
-        return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
-      }
-      if (requiredSeats === 2) {
-        return NextResponse.json(
-          { error: `Il ne reste que ${remaining} place${remaining > 1 ? "s" : ""} — insuffisant pour un billet Couple (2 places requises).` },
-          { status: 400 }
-        );
-      }
-      return NextResponse.json({ error: "L'événement est complet." }, { status: 400 });
-    }
+    /* ══════════════════════════════════════════════════════════
+       TRANSACTION — vérification atomique + création du billet
+       Toutes les lectures critiques + l'écriture sont dans le
+       même bloc transactionnel avec isolation SERIALIZABLE pour
+       éviter les race conditions de surréservation.
+    ══════════════════════════════════════════════════════════ */
+    const ticket = await prisma.$transaction(async (tx) => {
 
-    /* ── Vérifier billet existant ────────────────────────────── */
-    const existing = await prisma.ticket.findFirst({
-      where: { userId, eventId, status: { not: "CANCELLED" } },
-    });
-    if (existing) {
-      return NextResponse.json(
-        { error: "Vous avez déjà réservé pour cet événement." },
-        { status: 400 }
+      /* 1. Vérifier billet existant (dans la transaction) */
+      const existing = await tx.ticket.findFirst({
+        where: { userId, eventId, status: { not: "CANCELLED" } },
+      });
+      if (existing) {
+        throw new Error("ALREADY_BOOKED");
+      }
+
+      /* 2. Calculer les places occupées (dans la transaction) */
+      const ticketsWithSeats = await tx.ticket.findMany({
+        where: {
+          eventId,
+          status: { in: ["CONFIRMED", "PENDING", "PENDING_REVIEW"] },
+        },
+        include: { ticketType: { select: { seats: true } } },
+      });
+
+      const occupiedSeats = ticketsWithSeats.reduce(
+        (sum, t) => sum + (t.ticketType?.seats ?? 1),
+        0
       );
-    }
 
-    const qrCode = randomUUID();
-    const isFree = resolvedPrice === 0;
+      /* 3. Vérifier la capacité */
+      if (occupiedSeats + requiredSeats > event.capacity) {
+        const remaining = event.capacity - occupiedSeats;
+        if (remaining <= 0) {
+          throw new Error("SOLD_OUT");
+        }
+        if (requiredSeats > 1) {
+          throw new Error(`NOT_ENOUGH_SEATS:${remaining}`);
+        }
+        throw new Error("SOLD_OUT");
+      }
 
-    const ticket = await prisma.ticket.create({
-      data: {
-        userId,
-        eventId,
-        ticketTypeId: resolvedTicketTypeId,
-        qrCode,
-        status: isFree ? "CONFIRMED" : "PENDING",
-      },
-      include: { event: true, ticketType: true },
+      /* 4. Créer le billet */
+      const qrCode = randomUUID();
+      const isFree = resolvedPrice === 0;
+
+      return tx.ticket.create({
+        data: {
+          userId,
+          eventId,
+          ticketTypeId: resolvedTicketTypeId,
+          qrCode,
+          status: isFree ? "CONFIRMED" : "PENDING",
+        },
+        include: { event: true, ticketType: true },
+      });
+    }, {
+      /* Isolation maximale pour éviter les lectures fantômes */
+      isolationLevel: "Serializable",
     });
 
+    /* ── Envoi email QR (hors transaction — pas critique) ──── */
+    const isFree = resolvedPrice === 0;
     if (isFree && session.user.email) {
       try {
-        const qrContent = buildTicketQrContent(qrCode);
+        const qrContent = buildTicketQrContent(ticket.qrCode);
         const qrBuffer = await generateQrBuffer(qrContent);
         await sendTicketEmail(
           session.user.email,
@@ -193,7 +205,32 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
+
   } catch (error) {
+    /* ── Gestion des erreurs métier lancées depuis la transaction */
+    if (error instanceof Error) {
+      if (error.message === "ALREADY_BOOKED") {
+        return NextResponse.json(
+          { error: "Vous avez déjà réservé pour cet événement." },
+          { status: 400 }
+        );
+      }
+      if (error.message === "SOLD_OUT") {
+        return NextResponse.json(
+          { error: "L'événement est complet." },
+          { status: 400 }
+        );
+      }
+      if (error.message.startsWith("NOT_ENOUGH_SEATS:")) {
+        const remaining = error.message.split(":")[1];
+        return NextResponse.json(
+          {
+            error: `Il ne reste que ${remaining} place${Number(remaining) > 1 ? "s" : ""} — insuffisant pour un billet Couple (2 places requises).`,
+          },
+          { status: 400 }
+        );
+      }
+    }
     return errorResponse(error);
   }
 }
