@@ -122,6 +122,7 @@ model TicketType {
   name        String
   description String?
   price       Float   @default(0)
+  seats       Int     @default(1)
 
   event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets Ticket[]

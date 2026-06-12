@@ -157,13 +157,13 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Email ENSAE</label>
+            <label className="form-label" htmlFor="email">Email</label>
             <input
               id="email"
               name="email"
               type="email"
               className="form-input"
-              placeholder="prenom.nom@ensae.sn"
+              placeholder="prenom.nom@gmail.com"
               value={form.email}
               onChange={handleChange}
               required
@@ -188,7 +188,7 @@ export default function RegisterPage() {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="promotion">Promotion</label>
+              <label className="form-label" htmlFor="promotion">Niveau</label>
               <select
                 id="promotion"
                 name="promotion"

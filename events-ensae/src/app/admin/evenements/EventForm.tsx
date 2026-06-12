@@ -64,16 +64,17 @@ export function EventForm({ initialData, eventId }: Props) {
       .then((data) => {
         if (data.ticketTypes) {
           setTicketTypes(
-            data.ticketTypes.map((t: { id: string; name: string; description: string | null; price: number }) => ({
+            data.ticketTypes.map((t: { id: string; name: string; description: string | null; price: number; seats: number }) => ({
               id: t.id,
               name: t.name,
               description: t.description ?? "",
               price: String(t.price),
+              seats: String(t.seats ?? 1),
             }))
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [eventId]);
 
   const set = (k: keyof EventFormData, v: string | boolean) =>
@@ -136,6 +137,7 @@ export function EventForm({ initialData, eventId }: Props) {
               name: t.name.trim(),
               description: t.description?.trim() || null,
               price: Number(t.price) || 0,
+              seats: Number(t.seats) || 1,
             })),
           }),
         });
