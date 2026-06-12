@@ -179,7 +179,7 @@ export default function AdminUtilisateursPage() {
               <thead>
                 <tr>
                   <th>Utilisateur</th>
-                  <th>Filière / Promo</th>
+                  <th>Filière / Classe</th>
                   <th>Rôle & Permissions</th>
                   <th>Billets</th>
                   <th>Inscription</th>

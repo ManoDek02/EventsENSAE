@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       message: string;
       photoUrl?: string;
       genderPreference?: "HOMME" | "FEMME" | "INDIFFERENT";
-      phoneNumber?: string;   // ← NOUVEAU
+      phoneNumber?: number;   // ← NOUVEAU
     };
 
     if (!eventId) throw badRequest("eventId est requis.");
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
         message: message.trim(),
         photoUrl: photoUrl?.trim() || null,
         genderPreference: genderPreference ?? "INDIFFERENT",
-        phoneNumber: phoneNumber?.trim() || null,   // ← NOUVEAU
+        phoneNumber: phoneNumber ? String(phoneNumber) : null,
         status: "OPEN",
       },
       include: {

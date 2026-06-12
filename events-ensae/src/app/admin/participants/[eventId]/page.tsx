@@ -163,7 +163,7 @@ export default function ParticipantsPage() {
                                         <thead>
                                             <tr>
                                                 <th>Participant</th>
-                                                <th>Filière / Promo</th>
+                                                <th>Filière / Classe</th>
                                                 <th>Inscription</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -225,7 +225,7 @@ export default function ParticipantsPage() {
                                     <thead>
                                         <tr>
                                             <th>Participant</th>
-                                            <th>Filière / Promo</th>
+                                            <th>Filière / Classe</th>
                                             <th>Inscription</th>
                                             <th>Statut</th>
                                             <th>Actions</th>
@@ -286,7 +286,7 @@ export default function ParticipantsPage() {
                                 </h2>
                                 <div className={styles.tableWrap}>
                                     <table className={styles.table}>
-                                        <thead><tr><th>Participant</th><th>Filière / Promo</th><th>Inscription</th></tr></thead>
+                                        <thead><tr><th>Participant</th><th>Filière / Classe</th><th>Inscription</th></tr></thead>
                                         <tbody>
                                             {waitlist.map((w) => (
                                                 <tr key={w.id}>
