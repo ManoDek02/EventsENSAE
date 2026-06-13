@@ -56,22 +56,20 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       _count: {
         select: { tickets: { where: { status: "CONFIRMED" } } },
       },
-      ticketTypes: {
-        orderBy: { createdAt: "asc" },
-      },
+      ticketTypes: { orderBy: { createdAt: "asc" } },
     },
   });
 
   if (!rawEvent) notFound();
 
-  /* ─── Enrichir avec les helpers existants ────────────────── */
-  const event = {
-    ...rawEvent,
-    _count: rawEvent._count,
-  };
+  const { getOccupiedSeats } = await import("@/lib/events");
+  const occupiedSeats = await getOccupiedSeats(id);
+
+  const event = { ...rawEvent, occupiedSeats };
+
 
   const remainingSeats = getRemainingSeats(event);
-  const soldTickets = event.capacity - remainingSeats;
+  const soldTickets = event.occupiedSeats ?? (event.capacity - remainingSeats);
   const progress = Math.min(Math.round((soldTickets / event.capacity) * 100), 100);
   const isSoldOut = isEventSoldOut(event);
   const almostSoldOut = isAlmostSoldOut(event);
